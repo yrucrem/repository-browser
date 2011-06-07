@@ -39,33 +39,14 @@
 (function (window, undefined) {
 	
 	var  GENTICS = window.GENTICS || (window.GENTICS = {}),
-		  jQuery = window.gQuery  ||  window.jQuery;
-	
-	var Aloha = GENTICS.Aloha;
-	var root_path = '../../../';
+		  jQuery = window.gQuery  ||  window.jQuery,
+		   Aloha = GENTICS.Aloha;
 	
 	// If jQuery cannot be found then die violently!
 	if (typeof jQuery != 'function') {
 		throw 'jQuery cannot be found.';
 		return;
 	}
-	
-	// Preload tree and list images
-	jQuery.each([
-		'arrow-000-medium.png',
-		'arrow-180.png',
-		'arrow-315-medium.png',
-		'arrow-stop-180.png',
-		'arrow-stop.png',
-		'arrow.png',
-		'control-stop-square-small.png',
-		'folder-horizontal-open.png',
-		'folder-open.png',
-		'magnifier-left.png',
-		'page.png',
-		'sort-alphabet-descending.png',
-		'sort-alphabet.png'
-	], function () {(new Image()).src = root_path + '/Browser/img/' + this;});
 	
 	var uid = +(new Date);
 	
@@ -85,6 +66,8 @@
 				element: undefined,
 				// root folder id
 				rootFolderId: 'aloha',
+				// root path to where Browser resources are located
+				rootPath: '../../../Browser',
 				treeWidth: 300,
 				listWidth: 'auto',
 				pageSize: 10,
@@ -161,6 +144,8 @@
 				tree_width = this.treeWidth,
 				give = tree_width / 5;
 			
+			this.preloadImages();
+			
 			this.uid = ++uid;
 			
 			this.element.attr('data-aloha-browser', this.uid).html('');
@@ -199,6 +184,26 @@
 						return false;
 					};
 				});
+		},
+		
+		preloadImages: function () {
+			var that = this;
+			jQuery.each([
+				'arrow-000-medium.png',
+				'arrow-180.png',
+				'arrow-315-medium.png',
+				'arrow-stop-180.png',
+				'arrow-stop.png',
+				'arrow.png',
+				'control-stop-square-small.png',
+				'folder-horizontal-open.png',
+				'folder-open.png',
+				'magnifier-left.png',
+				'page.png',
+				'picture.png',
+				'sort-alphabet-descending.png',
+				'sort-alphabet.png'
+			], function () {(new Image()).src = that.rootPath + '/img/' + this;});
 		},
 		
 		/**
@@ -379,7 +384,7 @@
 		renderRowCols: function (item) {
 			var obj = {};
 			
-			console.log(item);
+			//console.dir(item);
 			
 			jQuery.each(this.columns, function (k, v) {
 				switch (k) {
@@ -494,7 +499,7 @@
 					},
 					themes: {
 						theme : 'browser',
-						url   : root_path + '/Browser/css/jstree.css',
+						url   : that.rootPath + '/css/jstree.css',
 						dots  : true,
 						icons : true
 					},
@@ -611,8 +616,7 @@
 			this.createTitlebar(container);
 			
 			this.grid.find('.loading').html(
-				'<img src="' + root_path + '/Browser/css/throbber.gif" ' +
-					'alt="" stlye="vertical-align:middle;" />&nbsp; Loading...'
+				//'Loading...'
 			);
 			
 			return list;

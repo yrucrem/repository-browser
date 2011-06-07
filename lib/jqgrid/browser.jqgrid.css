@@ -359,13 +359,15 @@
 	left: 45%;
 	width: auto;
 	z-index:101;
-	padding: 6px;
+	padding: 6px 6px 6px 20px;
 	margin: 5px;
 	text-align: center;
 	display: none;
 	border-width: 2px !important;
 	font-weight: normal;
 	color: #777;
+	
+	background: url(../../css/throbber.gif) no-repeat left center;
 }
 .ui-jqgrid .jqgrid-overlay {display:none; z-index:100;}
 /* Tree Grid */
