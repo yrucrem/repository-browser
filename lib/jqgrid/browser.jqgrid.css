@@ -158,10 +158,10 @@
 	filter: alpha(opacity=70);
 }
 .ui-jqgrid .ui-icon-asc {
-	background: url(/browser/img/sort-alphabet.png) no-repeat center center;
+	background: url(../../img/sort-alphabet.png) no-repeat center center;
 }
 .ui-jqgrid .ui-icon-desc {
-	background: url(/browser/img/sort-alphabet-descending.png) no-repeat center center;
+	background: url(../../img/sort-alphabet-descending.png) no-repeat center center;
 }
 .ui-jqgrid .ui-grid-ico-sort.ui-state-disabled {
 	display: none;
@@ -304,16 +304,16 @@
 	height: 16px;
 }
 .ui-jqgrid .ui-pg-button .ui-icon-seek-next {
-	background-image: url(/browser/img/arrow.png);
+	background-image: url(../../img/arrow.png);
 }
 .ui-jqgrid .ui-pg-button .ui-icon-seek-end {
-	background-image: url(/browser/img/arrow-stop.png);
+	background-image: url(../../img/arrow-stop.png);
 }
 .ui-jqgrid .ui-pg-button .ui-icon-seek-prev {
-	background-image: url(/browser/img/arrow-180.png);
+	background-image: url(../../img/arrow-180.png);
 }
 .ui-jqgrid .ui-pg-button .ui-icon-seek-first {
-	background-image: url(/browser/img/arrow-stop-180.png);
+	background-image: url(../../img/arrow-stop-180.png);
 }
 .ui-jqgrid .ui-pg-input {
 	width: 20px;

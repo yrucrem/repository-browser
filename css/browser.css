@@ -156,7 +156,7 @@
 	background: transparent no-repeat center center;
 }
 .aloha-browser-icon-document {
-	background: url(/browser/img/page.png) no-repeat center center;
+	background: url(../img/page.png) no-repeat center center;
 }
 .aloha-browser-grab-handle {
 	cursor: default;
@@ -264,7 +264,7 @@
 		width: 16px;
 		height: 16px;
 		display: inline-block;
-		background: url(/browser/img/magnifier-left.png) no-repeat center center;
+		background: url(../img/magnifier-left.png) no-repeat center center;
 		vertical-align: middle;
 	}
 
@@ -339,4 +339,21 @@
 	font-size: 13px;
 	
 	white-space: nowrap;
+}
+
+/**
+ * List icons
+ */
+.aloha-browser-icon {
+	width: 20px;
+	height: 20px;
+	margin: 0 auto;
+	background-repeat: no-repeat;
+	background-position: center center
+}
+.aloha-browser-icon-website {
+	background-image: url(../img/page.png);
+}
+.aloha-browser-icon-image {
+	background-image: url(../img/picture.png);
 }

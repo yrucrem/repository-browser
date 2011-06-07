@@ -41,6 +41,9 @@
 	var  GENTICS = window.GENTICS || (window.GENTICS = {}),
 		  jQuery = window.gQuery  ||  window.jQuery;
 	
+	var Aloha = GENTICS.Aloha;
+	var root_path = '../../../';
+	
 	// If jQuery cannot be found then die violently!
 	if (typeof jQuery != 'function') {
 		throw 'jQuery cannot be found.';
@@ -62,7 +65,7 @@
 		'page.png',
 		'sort-alphabet-descending.png',
 		'sort-alphabet.png'
-	], function () {(new Image()).src = '/browser/img/' + this;});
+	], function () {(new Image()).src = root_path + '/Browser/img/' + this;});
 	
 	var uid = +(new Date);
 	
@@ -86,9 +89,9 @@
 				listWidth: 'auto',
 				pageSize: 10,
 				columns: {
-					icon: {title: '',			width: 32,	sortable: false, resizable: false},
-					name: {title: 'Name',		width: 300, sorttype: 'text'},
-					rend: {title: 'Renditions', width: 300, sorttype: 'text'}
+					icon: {title: '',	  width: 30,  sortable: false, resizable: false},
+					name: {title: 'Name', width: 250, sorttype: 'text'},
+					url : {title: 'URL',  width: 450, sorttype: 'text'}
 				}
 			}, opts || {});
 		
@@ -379,7 +382,14 @@
 			console.log(item);
 			
 			jQuery.each(this.columns, function (k, v) {
-				obj[k] = item[k] || '--';
+				switch (k) {
+				case 'icon':
+					obj[k] = '<div class="aloha-browser-icon ' + 
+								'aloha-browser-icon-' + item.type + '"></div>';
+					break;
+				default:
+					obj[k] = item[k] || '--';
+				}
 			});
 			
 			return obj;
@@ -484,7 +494,7 @@
 					},
 					themes: {
 						theme : 'browser',
-						url   : '/browser/css/jstree.css',
+						url   : root_path + '/Browser/css/jstree.css',
 						dots  : true,
 						icons : true
 					},
@@ -601,8 +611,8 @@
 			this.createTitlebar(container);
 			
 			this.grid.find('.loading').html(
-				'<img src="/browser/css/throbber.gif" alt="" stlye="vertical-align:middle;" />' +
-					'&nbsp; Loading...'
+				'<img src="' + root_path + '/Browser/css/throbber.gif" ' +
+					'alt="" stlye="vertical-align:middle;" />&nbsp; Loading...'
 			);
 			
 			return list;
@@ -790,8 +800,8 @@
 			var that = this;
 			
 			jQuery('body').append(
-				'<div class="aloha-browser-modal-overlay" style="top:-9999px;"></div>' +
-				'<div class="aloha-browser-modal-window"  style="top:-9999px;"></div>'
+				'<div class="aloha-browser-modal-overlay" style="top:-9999px; z-index: 999999;"></div>' +
+				'<div class="aloha-browser-modal-window"  style="top:-9999px; z-index: 999999;"></div>'
 			);
 			
 			jQuery('.aloha-browser-modal-overlay').click(function () {
@@ -824,7 +834,7 @@
 				left : (win.width() - w) / 2,
 				top  : (win.height() - h) / 3
 			}).draggable({
-				handle: el.find('.aloha-grab-handle')
+				handle: el.find('.aloha-browser-grab-handle')
 			}).resizable();
 			
 			// Do wake-up animation
@@ -840,10 +850,8 @@
 		close: function () {
 			this.element.fadeOut(
 				250, function () {
-					jQuery(this)
-						.css('top', 0)
-						.add('.aloha-browser-modal-overlay')
-						.hide();
+					jQuery(this).css('top', 0).hide();
+					jQuery('.aloha-browser-modal-overlay').hide();
 				}
 			);
 		},

@@ -1,5 +1,5 @@
 /*
- * jsTree Gentics theme 1.0
+ * jsTree browser theme 1.0
  * Supported features: dots/no-dots, icons/no-icons, focused, loading
  * Supported plugins: ui (hovered, clicked), checkbox, contextmenu, search
  */
@@ -14,7 +14,7 @@
 }
 .jstree-browser li > ins {
 	cursor: pointer;
-	background: url(/browser/img/arrow-315-medium.png) no-repeat center center;
+	background: url(../img/arrow-315-medium.png) no-repeat center center;
 }
 
 /*
@@ -39,15 +39,15 @@
 	filter: alpha(opacity=100);
 }
 .jstree-browser li.jstree-open > ins {
-	background-image: url(/browser/img/arrow-315-medium.png);
+	background-image: url(../img/arrow-315-medium.png);
 	opacity: 1;
 	filter: alpha(opacity=100);
 }
 .jstree-browser li.jstree-closed > ins {
-	background-image: url(/browser/img/arrow-000-medium.png);
+	background-image: url(../img/arrow-000-medium.png);
 }
 .jstree-browser li.jstree-leaf > ins {
-	background-image: url(/browser/img/control-stop-square-small.png);
+	background-image: url(../img/control-stop-square-small.png);
 }
 /*
 .jstree-browser .jstree-hovered { background:#f9d53f; border:1px solid #f7b940; }
@@ -127,12 +127,12 @@
 
 /* Folder */
 .jstree-browser a .jstree-icon {
-	background: url(/browser/img/folder-horizontal-open.png) no-repeat center center;
+	background: url(../img/folder-horizontal-open.png) no-repeat center center;
 	cursor: pointer;
 }
 .jstree-browser a.jstree-loading .jstree-icon { background:url("throbber.gif") center center no-repeat !important; }
 .jstree-browser a.jstree-clicked .jstree-icon   {
-	background-image: url(/browser/img/folder-open.png);
+	background-image: url(../img/folder-open.png);
 }
 
 .jstree-browser.jstree-focused {
