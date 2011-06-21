@@ -6,24 +6,6 @@
   | browser.js                           |
   *--------------------------------------*/
 
-'use strict';
-
-/**
- * console placebo methods for browsers which do not have the console object.
- */
-(function (window, undefined) {
-	
-	if (typeof console == typeof undefined) {
-		window.console = {
-			log   : function () {},
-			warn  : function () {},
-			error : function () {}
-		};
-	}
-	
-})(window);
-
-
 /**
  * Aloha.Browser
  *
@@ -38,6 +20,8 @@
  */
 (function (window, undefined) {
 	
+	'use strict';
+	
 	var  GENTICS = window.GENTICS || (window.GENTICS = {}),
 		  jQuery = window.gQuery  ||  window.jQuery,
 		   Aloha = GENTICS.Aloha;
@@ -48,35 +32,51 @@
 		return;
 	}
 	
+	// Create local reference for quicker look-up
+	var console = window.console;
+	if (typeof console == typeof undefined) {
+		console = {
+			log   : function () {},
+			warn  : function () {},
+			error : function () {}
+		};
+	}
+	
 	var uid = +(new Date);
 	
+	// If you will extend Browser please be careful of how prototype inheritance
+	// works. Instance properties *must* be here in the constructor function, and
+	// static properties in Browser's prototype object. :-)
 	var Browser = function (opts) {
-		// These properties *must* be here in the constructor function, and not
-		// in the prototype object, or else they will be shared across multiple
-		// instances of Browser.
-		var that = this,
-			options = jQuery.extend({
-				// Set to TRUE for development and debugging
-				verbose: false,
-				// The repository manager which this browser will interface with
-				repositoryManager: Aloha.RepositoryManager,
-				objectTypeFilter: [],
-				renditionFilter: [],
-				// DOMObject to which this instance of browser is bound to
-				element: undefined,
-				// root folder id
-				rootFolderId: 'aloha',
-				// root path to where Browser resources are located
-				rootPath: '../../../Browser',
-				treeWidth: 300,
-				listWidth: 'auto',
-				pageSize: 10,
-				columns: {
-					icon: {title: '',	  width: 30,  sortable: false, resizable: false},
-					name: {title: 'Name', width: 250, sorttype: 'text'},
-					url : {title: 'URL',  width: 450, sorttype: 'text'}
-				}
-			}, opts || {});
+		// Force the Browser function to be invoked with the "new" operator
+		if (typeof this.instanceOf != 'string') {
+			return new Browser(opts);
+		}
+		
+		var that = this;
+		// Defaults
+		var options = jQuery.extend({
+			// Set to TRUE for development and debugging
+			verbose: false,
+			// The repository manager which this browser will interface with
+			repositoryManager: Aloha.RepositoryManager,
+			objectTypeFilter: [],
+			renditionFilter: [],
+			// DOMObject to which this instance of browser is bound to
+			element: undefined,
+			// root folder id
+			rootFolderId: 'aloha',
+			// root path to where Browser resources are located
+			rootPath: '../../../Browser',
+			treeWidth: 300,
+			listWidth: 'auto',
+			pageSize: 10,
+			columns: {
+				icon: {title: '',	  width: 30,  sortable: false, resizable: false},
+				name: {title: 'Name', width: 250, sorttype: 'text'},
+				url : {title: 'URL',  width: 450, sorttype: 'text'}
+			}
+		}, opts || {});
 		
 		if (typeof options.element != 'object') {
 			options.element = this.createOverlay();
@@ -114,7 +114,7 @@
 		}
 		
 		// Now that we have removed implement and callbacks, we insert
-		// the remaining options as fields of this object
+		// the remaining options as properties of this object
 		jQuery.extend(this, options);
 		
 		this.init.apply(this, arguments);
@@ -207,20 +207,20 @@
 		},
 		
 		/**
-		 * TODO: Is there a way we can prevent potential infinit loops caused
+		 * TODO: Is there a way we can prevent potential infinite loops caused
 		 * by programmer error?
 		 *
 		 * @param String fn - Name of any Browser method
 		 */
 		trigger: function (fn, returned) {
 			var cb = this._callbacks,
-				i,
-				l;
+				i, l,
+				func = cb[fn];
 			
-			if (typeof cb[fn] == 'object') {
-				for (i = 0, l = cb[fn].length; i < l; i++) {
-					if (typeof cb[fn][i] == 'function') {
-						cb[fn][i].call(this, returned);
+			if (typeof func == 'object') {
+				for (i = 0, l = func.length; i < l; i++) {
+					if (typeof func[i] == 'function') {
+						func[i].call(this, returned);
 					}
 				}
 			}
@@ -360,7 +360,7 @@
 					attr  : {'data-rep-oobj': obj.uid}, 
 					icon  : icon
 				},
-				state : (obj.hasMoreItems || obj.baseType == 'folder')
+				state: (obj.hasMoreItems || obj.baseType == 'folder')
 							? 'closed' : null,
 				resource: obj
 			};
@@ -384,13 +384,11 @@
 		renderRowCols: function (item) {
 			var obj = {};
 			
-			//console.dir(item);
-			
 			jQuery.each(this.columns, function (k, v) {
 				switch (k) {
 				case 'icon':
-					obj[k] = '<div class="aloha-browser-icon ' + 
-								'aloha-browser-icon-' + item.type + '"></div>';
+					obj[k] = '<div class="aloha-browser-icon\
+								aloha-browser-icon-' + item.type + '"></div>';
 					break;
 				default:
 					obj[k] = item[k] || '--';
@@ -461,11 +459,11 @@
 		createTree: function (container) {
 			var that = this,
 				tree = jQuery('<div class="aloha-browser-tree"></div>'),
-				header =  jQuery(
-					'<div class="aloha-browser-tree-header aloha-browser-grab-handle">' +
-						'Repository Browser' +
-					'</div>'
-				);
+				header =  jQuery('\
+					<div class="aloha-browser-tree-header aloha-browser-grab-handle">\
+						Repository Browser\
+					</div>\
+				');
 			
 			container.append(header, tree);
 			
@@ -492,7 +490,7 @@
 				.jstree({
 					plugins: ['themes', 'json_data', 'ui'],
 					core: {
-						// TODO: Override the yucky standard animation by
+						// TODO: Override the standard animation by
 						// setting this to 0, hiding the child node and
 						// re-animating it in our own way
 						animation: 250
@@ -516,12 +514,12 @@
 		},
 		
 		createGrid: function (container) {
-			var grid = jQuery(
-				'<div class="aloha-browser-grid aloha-browser-shadow aloha-browser-rounded-top">' +
-					'<div class="ui-layout-west"></div>'			+
-					'<div class="ui-layout-center"></div>'			+
-				'</div>'
-			);
+			var grid = jQuery('\
+				<div class="aloha-browser-grid aloha-browser-shadow aloha-browser-rounded-top">\
+					<div class="ui-layout-west"></div>\
+					<div class="ui-layout-center"></div>\
+				</div>\
+			');
 			
 			container.append(grid);
 			
@@ -530,10 +528,10 @@
 		
 		createList: function (container) {
 			var that = this,
-				list = jQuery('<table id="jqgrid_needs_somethig_anything_here"' +
-					' class="aloha-browser-list"></table>'),
+				list = jQuery('<table id="jqgrid_needs_somethig_anything_here"\
+					class="aloha-browser-list"></table>'),
 				colNames = [''],
-				colModel = [{// This is a hidden utility column to help us with auto sorting
+				colModel = [{ // This is a hidden utility column to help us with auto sorting
 					name	 : 'id',
 					sorttype : 'int',
 					firstsortorder: 'asc',
@@ -626,18 +624,18 @@
 			var that = this,
 				search,
 				bar = container.find('.ui-jqgrid-titlebar'),
-				btns = jQuery(
-					'<div class="aloha-browser-btns">'	+
-						'<input type="text" class="aloha-browser-search-field" />'  +
-						'<span class="aloha-browser-btn aloha-browser-search-btn">'	+
-							'<span class="aloha-browser-search-icon"></span>'		+
-						'</span>'	 					+
-						'<span class="aloha-browser-btn aloha-browser-close-btn">'	+
-							'Close'						+
-						'</span>'						+
-						'<div class="aloha-browser-clear"></div>'					+
-					'</div>'
-				);
+				btns = jQuery('														\
+					<div class="aloha-browser-btns">								\
+						<input type="text" class="aloha-browser-search-field" />	\
+						<span class="aloha-browser-btn aloha-browser-search-btn">	\
+							<span class="aloha-browser-search-icon"></span>			\
+						</span>														\
+						<span class="aloha-browser-btn aloha-browser-close-btn">	\
+							Close													\
+						</span>														\
+						<div class="aloha-browser-clear"></div>						\
+					</div>															\
+				');
 			
 			bar.addClass('aloha-browser-grab-handle')
 			   .append(btns);
@@ -726,7 +724,7 @@
 					objectTypeFilter : this.objectTypeFilter || null,
 					renditionFilter	 : this.renditionFilter || null,
 					filter			 : null, // array
-					orderBy			 : null  // eg: [{lastModificationDate:’DESC’, name:’ASC’}]
+					orderBy			 : null  // eg: [{lastModificationDate:?DESC?, name:?ASC?}]
 				//	repositoryId	 : obj.repositoryId
 				},
 				function (data) {
@@ -843,10 +841,10 @@
 			
 			// Do wake-up animation
 			this.grid.css({
-				'margin-top': 30,
+				marginTop: 30,
 				opacity: 0
 			}).animate({
-				'margin-top': 0,
+				marginTop: 0,
 				opacity: 1
 			}, 1000, 'easeOutExpo');
 		},
