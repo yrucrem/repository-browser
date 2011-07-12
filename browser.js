@@ -134,7 +134,8 @@
 			// The repository manager which this browser will interface with
 			repositoryManager: Aloha.RepositoryManager,
 			objectTypeFilter: [],
-			renditionFilter: [],
+			renditionFilter: ['cmis:thumbnail', 'image/*'], // ['*']
+			filter: ['url'],
 			// DOMObject to which this instance of browser is bound to
 			element: undefined,
 			// root folder id
@@ -145,10 +146,10 @@
 			listWidth: 'auto',
 			pageSize: 10,
 			columns: {
-				icon: {title: '',	  width: 30,  sortable: false, resizable: false},
-				name: {title: 'Name', width: 250, sorttype: 'text'},
-				url : {title: 'URL',  width: 350, sorttype: 'text'},
-				time : {title: 'Time',  width: 100, sorttype: 'text'}
+				icon:	 {title: '',		width: 30,  sortable: false, resizable: false},
+				name:	 {title: 'Name',	width: 250, sorttype: 'text'},
+				url:	 {title: 'URL',		width: 250, sorttype: 'text'},
+				preview: {title: 'Preview',	width: 200, sorttype: 'text'}
 			}
 		}, opts || {});
 		
@@ -472,19 +473,36 @@
 		 * @param Object item - Repository resource for a row
 		 */
 		renderRowCols: function (item) {
-			var obj = {};
+			var row = {},
+				rend,
+				j;
 			
-			jQuery.each(this.columns, function (k, v) {
-				switch (k) {
+			jQuery.each(this.columns, function (col, v) {
+				switch (col) {
 				case 'icon':
-					obj[k] = '<div class="aloha-browser-icon aloha-browser-icon-' + item.type + '"></div>';
+					row[col] = '<div class="aloha-browser-icon aloha-browser-icon-' + item.type + '"></div>';
+					break;
+				case 'preview':
+					rend = item.renditions;
+					if ((j = rend.length) > 0) {
+						row[col]  = '';
+						while (j-- > 0) {
+							if (rend[j].kind == 'thumbnail') {
+								row[col] += (
+									'<img src="{url}" alt="{kind}"\
+										title="{kind}" style="width:{width}px;\
+										height:{height}px;" />&nbsp;'
+								).supplant(rend[j]);
+							}
+						 }
+					}
 					break;
 				default:
-					obj[k] = item[k] || '--';
+					row[col] = item[col] || '--';
 				}
 			});
 			
-			return obj;
+			return row;
 		},
 		
 		/**
@@ -753,17 +771,11 @@
 		},
 		
 		triggerSearch: function () {
-			var search = this.grid.find('input' + nsSel('search-field')),
-				val = search.val();
+			var search = this.grid.find('input' + nsSel('search-field'));
 			
 			this._pagingOffset = 0;
-			
-			if (val == '') {
-				search.focus();
-			} else {
-				this._searchQuery = val;
-				this.fetchItems(this._currentFolderId, this.processItems);
-			}
+			this._searchQuery = search.val();
+			this.fetchItems(this._currentFolderId, this.processItems);
 		},
 		
 		/**
@@ -827,6 +839,7 @@
 			return th.find('div.ui-jqgrid-sortable').attr('id').replace('jqgh_', '');
 		},
 		
+		// TODO: make this 3d!!!
 		doPaging: function (dir) {
 			switch (dir) {
 			case 'first':
@@ -867,8 +880,8 @@
 					: 'Browsing: ' + name
 			);
 			
-			this.list.fadeOut(250);
-			this.grid.find('.loading').fadeIn(500);
+			this.list.fadeOut(200);
+			this.grid.find('.loading').fadeIn(200);
 			
 			this.queryRepository(
 				{
@@ -878,8 +891,8 @@
 					maxItems		 : this.pageSize,
 					objectTypeFilter : this.objectTypeFilter,
 					renditionFilter	 : this.renditionFilter,
-					filter			 : null, // array
-					orderBy			 : this._orderBy, // eg: [{lastModificationDate:?DESC?, name:?ASC?}]
+					filter			 : this.filter,
+					orderBy			 : this._orderBy // eg: [{lastModificationDate: 'DESC'}, {name: 'ASC'}]
 				//	repositoryId	 : obj.repositoryId
 				},
 				function (data) {
@@ -914,16 +927,14 @@
 					jQuery.extend({id: obj.id}, that.renderRowCols(obj))
 				);
 			});
-			
-			//list.sortGrid('id');
 		},
 		
 		processItems: function (data) {
 			var btns = this._pagingBtns,
 				disabled = 'ui-state-disabled';
 			
-			this.grid.find('.loading').fadeOut(250);
-			this.list.fadeIn(250);
+			this.grid.find('.loading').fadeOut(100);
+			this.list.fadeIn(200);
 			
 			this.listItems(data);
 			
