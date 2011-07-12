@@ -259,6 +259,7 @@
 	border-radius-bottomleft:		    0;
 	-moz-border-radius-bottomleft:		0;
 	-webkit-border-bottom-left-radius:	0;
+	cursor: pointer;
 }
 	.aloha-browser-search-icon {
 		width: 16px;

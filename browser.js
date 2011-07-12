@@ -18,13 +18,13 @@
  *		www.trirand.com/blog/ (jqGrid)
  *		layout.jquery-dev.net/
  */
-(function (window, undefined) {
+(function BrowserClosure (window, undefined) {
 	
 	'use strict';
 	
-	var  GENTICS = window.GENTICS || (window.GENTICS = {}),
-		  jQuery = window.gQuery  ||  window.jQuery,
-		   Aloha = GENTICS.Aloha;
+	var GENTICS = window.GENTICS || (window.GENTICS = {}),
+		 jQuery = window.alohaQuery || window.jQuery,
+		  Aloha = window.Aloha || GENTICS.Aloha; // GENTICS.Aloha is for legacy
 	
 	// If jQuery cannot be found then die violently!
 	if (typeof jQuery != 'function') {
@@ -42,11 +42,83 @@
 		};
 	}
 	
-	var uid = +(new Date);
+	// ------------------------------------------------------------------------
+	// Local (helper) variables
+	// ------------------------------------------------------------------------
 	
-	// If you will extend Browser please be careful of how prototype inheritance
-	// works. Instance properties *must* be here in the constructor function, and
-	// static properties in Browser's prototype object. :-)
+	var cssNS = 'aloha-browser',
+		uid	  = +(new Date),
+		// namespaced classnames
+		nsClasses = {
+			tree				: nsClass('tree'),
+			'tree-header'		: nsClass('tree-header'),
+			'grab-handle'		: nsClass('grab-handle'),
+			shadow				: nsClass('shadow'),
+			'rounded-top'		: nsClass('rounded-top'),
+			list				: nsClass('list'),
+			'list-altrow'		: nsClass('list-altrow'),
+			'list-resizable'	: nsClass('list-resizable'),
+			'list-pager'		: nsClass('list-pager'),
+			'list-pager-left'	: nsClass('list-pager-left'),
+			'list-btns'			: nsClass('list-btns'),
+			'search-btn'		: nsClass('search-btn'),
+			'search-field'		: nsClass('search-field'),
+			'search-icon'		: nsClass('search-icon'),
+			'close-btn'			: nsClass('close-btn'),
+			btn					: nsClass('btn'),
+			btns				: nsClass('btns'),
+			grid				: nsClass('grid'),
+			clear				: nsClass('clear'),
+			inner				: nsClass('inner'),
+			'modal-overlay'		: nsClass('modal-overlay'),
+			'modal-window'		: nsClass('modal-window'),
+			'grap-handle'		: nsClass('grap-handle')
+		};
+	
+	// ------------------------------------------------------------------------
+	// Local (helper) functions
+	// ------------------------------------------------------------------------
+	
+	// TODO: This suffices for now. But we are to consider a more robust
+	//		 templating engine.
+	// TODO: Offer parameter to define left and right delimiters in case the
+	//		 default "{", and "}" are problematic
+	String.prototype.supplant = function (/*'lDelim, rDelim,'*/ obj) {
+		return this.replace(/\{([a-z0-9\-\_]+)\}/ig, function (str, p1, offset, s) {
+			var replacement = obj[p1] || str;
+			return (typeof replacement == 'function')
+						? replacement() : replacement;
+		});
+	};
+	
+	// It is prefered that we render strings through this function rather than
+	// going directly to String.prototype.supplant
+	function renderTemplate (str) {
+		return (typeof str == 'string')
+					? str.supplant(nsClasses)
+					: str;
+	};
+	
+	// Creates a selector string with this component's namepsace prefixed the each classname
+	function nsSel () {
+		var str = '',
+			prx = cssNS; // ... for quicker lookup
+		jQuery.each(arguments, function () {str += ' .' + prx + '-' + this;});
+		return str.trim();
+	};
+	
+	// Creates string with this component's namepsace prefixed the each classname
+	function nsClass () {
+		var str = '',
+			prx = cssNS;
+		jQuery.each(arguments, function () {str += ' ' + prx + '-' + this;});
+		return str.trim();
+	};
+	
+	// ------------------------------------------------------------------------
+	// Browser constructor
+	// Only instance properties are to be defined here
+	// ------------------------------------------------------------------------
 	var Browser = function (opts) {
 		// Force the Browser function to be invoked with the "new" operator
 		if (typeof this.instanceOf != 'string') {
@@ -54,9 +126,10 @@
 		}
 		
 		var that = this;
+		
 		// Defaults
 		var options = jQuery.extend({
-			// Set to TRUE for development and debugging
+			// Set to true for development and debugging
 			verbose: false,
 			// The repository manager which this browser will interface with
 			repositoryManager: Aloha.RepositoryManager,
@@ -67,17 +140,20 @@
 			// root folder id
 			rootFolderId: 'aloha',
 			// root path to where Browser resources are located
-			rootPath: '../../../Browser',
+			rootPath: 'Browser',
 			treeWidth: 300,
 			listWidth: 'auto',
 			pageSize: 10,
 			columns: {
 				icon: {title: '',	  width: 30,  sortable: false, resizable: false},
 				name: {title: 'Name', width: 250, sorttype: 'text'},
-				url : {title: 'URL',  width: 450, sorttype: 'text'}
+				url : {title: 'URL',  width: 350, sorttype: 'text'},
+				time : {title: 'Time',  width: 100, sorttype: 'text'}
 			}
 		}, opts || {});
 		
+		// If no element, the we will an overlay element onto which we will bind
+		// our browser
 		if (typeof options.element != 'object') {
 			options.element = this.createOverlay();
 		}
@@ -86,9 +162,16 @@
 		this._callbacks = {};
 		// Cache of repository objects
 		this._objs = {};
+		//
 		this._searchQuery = null;
+		this._orderBy = null;
+		
+		//---------------------------------------------------------------------
+		// paging properties
+		//---------------------------------------------------------------------
 		this._pagingOffset = 0;
-		// Total number of objects in a given folder *don't* use null isNaN(null) == false!
+		// Total number of objects in a given folder. We don't use null because
+		// isNaN(null) == false !
 		this._pagingCount = undefined;
 		this._pagingBtns = {
 			first : null,
@@ -97,32 +180,35 @@
 			prev  : null
 		};
 		
+		// TODO: Consider deprecating this
 		// Register user defined implement methods and callbacks, and remove
 		// them from the options object
 		if (typeof options.implement == 'object') {
 			jQuery.each(options.implement, function (k, v) {
 				that[k] = v;
 			});
-			options.implement = undefined;
+			
+			delete options.implement;
 		}
 		
+		// TODO: Consider deprecating this
 		if (typeof options.callbacks == 'object') {
 			jQuery.each(options.callbacks, function () {
 				that.callback(this[0], this[1]);
 			});
-			options.callbacks = undefined;
+			
+			delete options.callbacks;
 		}
 		
-		// Now that we have removed implement and callbacks, we insert
-		// the remaining options as properties of this object
+		// Insert the remaining options as properties of this object
 		jQuery.extend(this, options);
 		
 		this.init.apply(this, arguments);
 	};
 	
 	/**
-	 * All methods and properties that are to be shared across multiple
-	 * instances of Browser are extended into the prototype object
+	 * Extend methods and properties that are to be shared across multiple
+	 * instances of Browser are into the prototype object
 	 */
 	jQuery.extend(Browser.prototype, {
 		
@@ -168,7 +254,9 @@
 					}
 				}
 				// , applyDefaultStyles: true // debugging
-			}).sizePane('west', tree_width); // This is a fix for a ui-layout bug in chrome
+			})
+			// *** Fix for a ui-layout bug in chrome ***
+			.sizePane('west', tree_width);
 			
 			this.preventSelection();
 			
@@ -302,9 +390,12 @@
 		
 		queryRepository: function (params, callback) {
 			var that = this;
+			
 			this.repositoryManager.query(params, function (response) {
-				var data = (response.results > 0) ? response.items : [];
-				that.processRepoResponse(data, callback);
+				that.processRepoResponse(
+					(response.results > 0) ? response.items : [],
+					callback
+				);
 			});
 		},
 		
@@ -360,8 +451,7 @@
 					attr  : {'data-rep-oobj': obj.uid}, 
 					icon  : icon
 				},
-				state: (obj.hasMoreItems || obj.baseType == 'folder')
-							? 'closed' : null,
+				state: (obj.hasMoreItems || obj.baseType == 'folder') ? 'closed' : null,
 				resource: obj
 			};
 		},
@@ -387,8 +477,7 @@
 			jQuery.each(this.columns, function (k, v) {
 				switch (k) {
 				case 'icon':
-					obj[k] = '<div class="aloha-browser-icon\
-								aloha-browser-icon-' + item.type + '"></div>';
+					obj[k] = '<div class="aloha-browser-icon aloha-browser-icon-' + item.type + '"></div>';
 					break;
 				default:
 					obj[k] = item[k] || '--';
@@ -458,12 +547,12 @@
 		
 		createTree: function (container) {
 			var that = this,
-				tree = jQuery('<div class="aloha-browser-tree"></div>'),
-				header =  jQuery('\
-					<div class="aloha-browser-tree-header aloha-browser-grab-handle">\
-						Repository Browser\
-					</div>\
-				');
+				tree = jQuery(renderTemplate('<div class="{tree}"></div>')),
+				header =  jQuery(renderTemplate('				\
+					<div class="{tree-header} {grab-handle}">	\
+						Repository Browser						\
+					</div>										\
+				'));
 			
 			container.append(header, tree);
 			
@@ -514,12 +603,12 @@
 		},
 		
 		createGrid: function (container) {
-			var grid = jQuery('\
-				<div class="aloha-browser-grid aloha-browser-shadow aloha-browser-rounded-top">\
-					<div class="ui-layout-west"></div>\
-					<div class="ui-layout-center"></div>\
-				</div>\
-			');
+			var grid = jQuery(renderTemplate(
+				'<div class="{grid} {shadow} {rounded-top}"> \
+					<div class="ui-layout-west"></div>		 \
+					<div class="ui-layout-center"></div>	 \
+				</div>'
+			));
 			
 			container.append(grid);
 			
@@ -528,8 +617,10 @@
 		
 		createList: function (container) {
 			var that = this,
-				list = jQuery('<table id="jqgrid_needs_somethig_anything_here"\
-					class="aloha-browser-list"></table>'),
+				list = jQuery(renderTemplate(
+						'<table id="jqgrid_needs_something_anything_here"\
+							class="{list}"></table>'
+					)),
 				colNames = [''],
 				colModel = [{ // This is a hidden utility column to help us with auto sorting
 					name	 : 'id',
@@ -551,7 +642,7 @@
 			
 			container.append(
 				list,
-				jQuery('<div id="aloha-browser-list-pager">')
+				jQuery(renderTemplate('<div id="{list-pager}">'))
 			);
 			
 			list.jqGrid({
@@ -562,16 +653,16 @@
 				colModel	: colModel,
 				caption		: '&nbsp;',
 				altRows		: true,
-				altclass	: 'aloha-browser-list-altrow',
-				resizeclass : 'aloha-browser-list-resizable',
-				pager		: '#aloha-browser-list-pager', // http://www.trirand.com/jqgridwiki/doku.php?id=wiki:pager&s[]=pager
+				altclass	: nsClass('list-altrow'),
+				resizeclass : nsClass('list-resizable'),
+				pager		: '#' + nsClass('list-pager'), // http://www.trirand.com/jqgridwiki/doku.php?id=wiki:pager&s[]=pager
 			//	rowNum		: this.pageSize,	  // # of records to view in the grid. Passed as parameter to url when retrieving data from server
 				viewrecords	: true,
 				// Event handlers: http://www.trirand.com/jqgridwiki/doku.php?id=wiki:events
 				// fires after click on [page button] and before populating the data
 				onPaging	: function (button) {},
 				// called if the request fails
-				loadError	 : function (xhr, status, error) {},
+				loadError	: function (xhr, status, error) {},
 				// Raised immediately after row was double clicked. 
 				ondblClickRow: function (rowid, iRow, iCol, e) {},
 				// fires after all the data is loaded into the grid and all other processes are complete
@@ -587,7 +678,7 @@
 					container.find('.ui-jqgrid-hdiv').outerHeight(true) + 
 					container.find('.ui-jqgrid-pager').outerHeight(true)
 				)
-			)
+			);
 			
 			list.dblclick(function () {
 				that.rowClicked.apply(that, arguments);
@@ -609,13 +700,20 @@
 			// TODO: implement this once repositories can handle it, hidding it for now
 			container.find('.ui-pg-input').parent().hide()
 			container.find('.ui-separator').parent().css('opacity', 0).first().hide();
-			container.find('#aloha-browser-list-pager_left').hide();
+			container.find('#' + nsClass('list-pager-left')).hide();
 			
 			this.createTitlebar(container);
 			
-			this.grid.find('.loading').html(
-				//'Loading...'
-			);
+			//this.grid.find('.loading').html('Loading...');
+			
+			var listProps = list[0].p;
+			// Override jqGrid sorting method
+			container.find('.ui-jqgrid-view tr:first th div').each(function(i) {
+				jQuery(this).unbind().click(function (event) {
+					event.stopPropagation();
+					that.sortList(listProps.colModel[i]);
+				});
+			});
 			
 			return list;
 		},
@@ -624,42 +722,38 @@
 			var that = this,
 				search,
 				bar = container.find('.ui-jqgrid-titlebar'),
-				btns = jQuery('														\
-					<div class="aloha-browser-btns">								\
-						<input type="text" class="aloha-browser-search-field" />	\
-						<span class="aloha-browser-btn aloha-browser-search-btn">	\
-							<span class="aloha-browser-search-icon"></span>			\
-						</span>														\
-						<span class="aloha-browser-btn aloha-browser-close-btn">	\
-							Close													\
-						</span>														\
-						<div class="aloha-browser-clear"></div>						\
-					</div>															\
-				');
+				btns = jQuery(renderTemplate(
+					'<div class="{btns}">							 \
+						<input type="text" class="{search-field}" /> \
+						<span class="{btn} {search-btn}">			 \
+							<span class="{search-icon}"></span>		 \
+						</span>										 \
+						<span class="{btn} {close-btn}">Close</span> \
+						<div class="{clear}"></div>					 \
+					</div>'
+				));
 			
-			bar.addClass('aloha-browser-grab-handle')
-			   .append(btns);
-			
-			bar.find('.aloha-browser-search-btn').click(function () {
+			bar.addClass(nsClass('grab-handle')).append(btns);
+			bar.find(nsSel('search-btn')).click(function () {
 				that.triggerSearch();
 			});
-			bar.find('.aloha-browser-search-field').keypress(function (event) {
+			bar.find(nsSel('search-field')).keypress(function (event) {
 				if (event.keyCode == 13) { // on Enter
 					that.triggerSearch();
 				}
 			});
-			bar.find('.aloha-browser-close-btn').click(function () {
+			bar.find(nsSel('close-btn')).click(function () {
 				that.close();
 			});
-			bar.find('.aloha-browser-btn').mousedown(function () {
-				jQuery(this).addClass('aloha-browser-pressed');
+			bar.find(nsSel('btn')).mousedown(function () {
+				jQuery(this).addClass(nsClass('pressed'));
 			}).mouseup(function () {
-				jQuery(this).removeClass('aloha-browser-pressed');
+				jQuery(this).removeClass(nsClass('pressed'));
 			});
 		},
 		
 		triggerSearch: function () {
-			var search = this.grid.find('input.aloha-browser-search-field'),
+			var search = this.grid.find('input' + nsSel('search-field')),
 				val = search.val();
 			
 			this._pagingOffset = 0;
@@ -668,8 +762,27 @@
 				search.focus();
 			} else {
 				this._searchQuery = val;
-				this.fetchItems(this.currentFolder, this.processItems);
+				this.fetchItems(this._currentFolderId, this.processItems);
 			}
+		},
+		
+		sortList: function(colModel){
+			colModel.sortorder = (colModel.sortorder == 'asc') ? 'desc' : 'asc';
+			this.setSortOrder(colModel.name, colModel.sortorder)
+				.fetchItems(this._currentFolderId, this.processItems);
+		},
+		
+		setSortOrder: function (by, order) {
+			var sort1 = {};
+			sort1[by] = order || 'asc';
+			
+			this._orderBy = [sort1];
+			
+			return this;
+		},
+		
+		getFieldOfHeader: function (th) {
+			return th.find('div.ui-jqgrid-sortable').attr('id').replace('jqgh_', '');
 		},
 		
 		doPaging: function (dir) {
@@ -707,7 +820,7 @@
 			}
 			
 			this.list.setCaption(
-				(typeof this._searchQuery == 'string')
+				(typeof this._searchQuery === 'string')
 					? 'Searching for "' + this._searchQuery + '" in ' + name
 					: 'Browsing: ' + name
 			);
@@ -717,14 +830,14 @@
 			
 			this.queryRepository(
 				{
-					queryString		 : this._searchQuery || null,
+					queryString		 : this._searchQuery,
 					inFolderId		 : this._currentFolderId,
 					skipCount		 : this._pagingOffset,
 					maxItems		 : this.pageSize,
-					objectTypeFilter : this.objectTypeFilter || null,
-					renditionFilter	 : this.renditionFilter || null,
+					objectTypeFilter : this.objectTypeFilter,
+					renditionFilter	 : this.renditionFilter,
 					filter			 : null, // array
-					orderBy			 : null  // eg: [{lastModificationDate:?DESC?, name:?ASC?}]
+					orderBy			 : this._orderBy, // eg: [{lastModificationDate:?DESC?, name:?ASC?}]
 				//	repositoryId	 : obj.repositoryId
 				},
 				function (data) {
@@ -760,7 +873,7 @@
 				);
 			});
 			
-			list.sortGrid('id');
+			//list.sortGrid('id');
 		},
 		
 		processItems: function (data) {
@@ -792,25 +905,25 @@
 			}
 			
 			this.grid.find('.ui-paging-info').html(
-				'Viewing ' + (data.length == 0 ? 0 :(this._pagingOffset + 1)) + ' - '  +
-				(this._pagingOffset + data.length) + ' of ' +
-				(this._pagingCount || 'numerous')
+				'Viewing ' +		  (data.length == 0 ? 0 : this._pagingOffset + 1)
+						   + ' - '  + (data.length == 0 ? 0 : this._pagingOffset + data.length)
+						   + ' of ' + (this._pagingCount || 'numerous')
 			);
 		},
 		
 		createOverlay: function () {
 			var that = this;
 			
-			jQuery('body').append(
-				'<div class="aloha-browser-modal-overlay" style="top:-9999px; z-index: 999999;"></div>' +
-				'<div class="aloha-browser-modal-window"  style="top:-9999px; z-index: 999999;"></div>'
-			);
+			jQuery('body').append(renderTemplate(
+				'<div class="{modal-overlay}" style="top: -99999px; z-index: 99999;"></div>' +
+				'<div class="{modal-window}"  style="top: -99999px; z-index: 99999;"></div>'
+			));
 			
-			jQuery('.aloha-browser-modal-overlay').click(function () {
+			jQuery(nsSel('modal-overlay')).click(function () {
 				that.close();
 			});
 			
-			return jQuery('.aloha-browser-modal-window');
+			return jQuery(nsSel('modal-window'));
 		},
 		
 		setObjectTypeFilter: function (otf) {
@@ -822,9 +935,11 @@
 		},
 		
 		show: function () {
+			this.fetchRepoRoot();
+			
 			var el = this.element;
 			
-			jQuery('.aloha-browser-modal-overlay')
+			jQuery(nsSel('modal-overlay'))
 				.css({top: 0, left: 0})
 				.add(el).stop().show();
 			
@@ -836,7 +951,7 @@
 				left : (win.width() - w) / 2,
 				top  : (win.height() - h) / 3
 			}).draggable({
-				handle: el.find('.aloha-browser-grab-handle')
+				handle: el.find(nsSel('grab-handle'))
 			}).resizable();
 			
 			// Do wake-up animation
@@ -853,7 +968,7 @@
 			this.element.fadeOut(
 				250, function () {
 					jQuery(this).css('top', 0).hide();
-					jQuery('.aloha-browser-modal-overlay').hide();
+					jQuery(nsSel('modal-overlay')).hide();
 				}
 			);
 		},
@@ -876,6 +991,14 @@
 			}
 		}
 		
+	});
+	
+	// TODO: Why is aloha is not being triggered ?!?
+	// Expose Browser through Aloha as soon Aloha becomes available
+	jQuery('body').bind('aloha', function () {
+		Aloha.Browser = Browser;
+		// Broadcast that this Browser is ready for use
+		jQuery('body').trigger(nsClass('ready'), this);
 	});
 	
 	GENTICS.Browser = Browser;
