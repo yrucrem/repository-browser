@@ -706,12 +706,12 @@
 			
 			//this.grid.find('.loading').html('Loading...');
 			
+			// Override jqGrid sorting
 			var listProps = list[0].p;
-			// Override jqGrid sorting method
 			container.find('.ui-jqgrid-view tr:first th div').each(function(i) {
 				jQuery(this).unbind().click(function (event) {
 					event.stopPropagation();
-					that.sortList(listProps.colModel[i]);
+					that.sortList(listProps.colModel[i], this);
 				});
 			});
 			
@@ -766,17 +766,59 @@
 			}
 		},
 		
-		sortList: function(colModel){
+		/**
+		 * TODO: Fix this so that sorting does toggle between desc and asc
+		 *		 when you click on a column on which we were not sorting.
+		 */
+		sortList: function(colModel, el){
+			// reset sort properties in all column headers
+			jQuery('span.ui-grid-ico-sort').addClass('ui-state-disabled');
+			
 			colModel.sortorder = (colModel.sortorder == 'asc') ? 'desc' : 'asc';
+			
+			jQuery(el)
+				.find('span.s-ico').show()
+					.find('.ui-icon-' + colModel.sortorder)
+						.removeClass('ui-state-disabled');
+			
 			this.setSortOrder(colModel.name, colModel.sortorder)
 				.fetchItems(this._currentFolderId, this.processItems);
 		},
 		
+		/**
+		 * This function adds new sort fields into the _orderBy array.
+		 * If a field already exists, it will be spliced from where it is and
+		 * unshifted to the end of the array
+		 */
 		setSortOrder: function (by, order) {
-			var sort1 = {};
-			sort1[by] = order || 'asc';
+			var sortItem = {};
+			sortItem[by] = order || 'asc';
 			
-			this._orderBy = [sort1];
+			var orderBy = this._orderBy || [];
+			var field;
+			var orderItem;
+			var found = false;
+			
+			for (var i = 0, j = orderBy.length; i < j; i++) {
+				orderItem = orderBy[i];
+				
+				for (field in orderItem) {
+					if (field === by) {
+						orderBy.splice(i, 1);
+						orderBy.unshift(sortItem);
+						found = true;
+						break;
+					}
+				}
+				
+				if (found) {
+					break;
+				}
+			}
+			
+			found || orderBy.unshift(sortItem);
+			
+			this._orderBy = orderBy;
 			
 			return this;
 		},
