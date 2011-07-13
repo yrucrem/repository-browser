@@ -261,6 +261,14 @@
 			
 			this.preventSelection();
 			
+			// Not working
+			jQuery('body').bind('aloha-repository-error', function (error) {
+				console.warn(
+					'Error occured on request to repository: ', error.repository.repositoryId +
+					'\nMessage: "' + error.message + '"'
+				);
+			});
+			
 			this.close();
 		},
 		
@@ -331,28 +339,32 @@
 		 * @param Object cb - Callback function to invoke
 		 */
 		callback: function (fn, cb) {
-			if (typeof this[fn] == 'function') {
-				if (typeof cb == 'function') {
-					if (this._callbacks[fn] == undefined) {
-						if (this.enableCallbacks(fn)) {
-							this._callbacks[fn] = [cb];
-						}
-					} else {
-						this._callbacks[fn].push(cb);
-					}
-				} else {
-					this.warn(
-						'Unable to add a callback to "' + fn + '" because '	+
-						'the callback object that was given is of type "'	+
-						(typeof cb) + '". '									+
-						'The callback object needs to be of type "function".'
-					);
-				}
-			} else {
+			if (typeof this[fn] != 'function') {
 				this.warn(
 					'Unable to add a callback to "' + fn +
 					'" because it is not a method in Aloha.Browser.'
 				);
+				
+				return this;
+			}
+			
+			if (typeof cb != 'function') {
+				this.warn(
+					'Unable to add a callback to "' + fn + '" because '	+
+					'the callback object that was given is of type "'	+
+					(typeof cb) + '". '									+
+					'The callback object needs to be of type "function".'
+				);
+				
+				return this;
+			}
+			
+			if (this._callbacks[fn] == undefined) {
+				if (this.enableCallbacks(fn)) {
+					this._callbacks[fn] = [cb];
+				}
+			} else {
+				this._callbacks[fn].push(cb);
 			}
 			
 			return this;
@@ -393,6 +405,7 @@
 			var that = this;
 			
 			this.repositoryManager.query(params, function (response) {
+				console.log(response);
 				that.processRepoResponse(
 					(response.results > 0) ? response.items : [],
 					callback
@@ -985,7 +998,7 @@
 		},
 		
 		setObjectTypeFilter: function (otf) {
-			this.objectTypeFilter = otf;
+			this.objectTypeFilter = typeof otf === 'string' ? [otf] : otf;
 		},
 		
 		getObjectTypeFilter: function () {
@@ -1051,12 +1064,16 @@
 		
 	});
 	
-	// TODO: Why is aloha is not being triggered ?!?
-	// Expose Browser through Aloha as soon Aloha becomes available
-	jQuery('body').bind('aloha', function () {
-		Aloha.Browser = Browser;
-		// Broadcast that this Browser is ready for use
-		jQuery('body').trigger(nsClass('ready'), this);
+	jQuery(function () {
+		jQuery('body').bind('aloha', function () {
+			// Broadcast that this Browser is ready for use
+			jQuery('body').trigger(nsClass('ready'), this);
+			Aloha.Browser = Browser;
+		});
+		
+		jQuery('bind').bind('aloha-browser-ready', function () {
+			//alert(9);
+		});
 	});
 	
 	GENTICS.Browser = Browser;
