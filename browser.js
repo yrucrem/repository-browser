@@ -484,14 +484,15 @@
 					break;
 				case 'preview':
 					rend = item.renditions;
-					if ((j = rend.length) > 0) {
+					if (rend && (j = rend.length)) {
 						row[col]  = '';
 						while (j-- > 0) {
 							if (rend[j].kind == 'thumbnail') {
 								row[col] += (
-									'<img src="{url}" alt="{kind}"\
-										title="{kind}" style="width:{width}px;\
-										height:{height}px;" />&nbsp;'
+									'<img src="{url}"\
+										  alt="{kind}"\
+										  style="width:{width}px; height:{height}px; margin:5px;"\
+										  />'
 								).supplant(rend[j]);
 							}
 						 }
@@ -839,7 +840,6 @@
 			return th.find('div.ui-jqgrid-sortable').attr('id').replace('jqgh_', '');
 		},
 		
-		// TODO: make this 3d!!!
 		doPaging: function (dir) {
 			switch (dir) {
 			case 'first':
@@ -855,6 +855,11 @@
 				this._pagingOffset -= this.pageSize;
 				break;
 			}
+			
+			// TODO: animate
+			//var grid = this.grid.find('.ui-jqgrid-bdiv');
+			//grid.animate({marginLeft: -grid.width()}, 500);
+			
 			this.fetchItems(this._currentFolderId, this.processItems);
 		},
 		
@@ -880,8 +885,8 @@
 					: 'Browsing: ' + name
 			);
 			
-			this.list.fadeOut(200);
-			this.grid.find('.loading').fadeIn(200);
+			this.list.hide();
+			this.grid.find('.loading').show();
 			
 			this.queryRepository(
 				{
@@ -892,7 +897,7 @@
 					objectTypeFilter : this.objectTypeFilter,
 					renditionFilter	 : this.renditionFilter,
 					filter			 : this.filter,
-					orderBy			 : this._orderBy // eg: [{lastModificationDate: 'DESC'}, {name: 'ASC'}]
+					orderBy			 : this._orderBy
 				//	repositoryId	 : obj.repositoryId
 				},
 				function (data) {
@@ -933,8 +938,8 @@
 			var btns = this._pagingBtns,
 				disabled = 'ui-state-disabled';
 			
-			this.grid.find('.loading').fadeOut(100);
-			this.list.fadeIn(200);
+			this.grid.find('.loading').hide();
+			this.list.show();
 			
 			this.listItems(data);
 			
@@ -1014,7 +1019,7 @@
 			}).animate({
 				marginTop: 0,
 				opacity: 1
-			}, 1000, 'easeOutExpo');
+			}, 1500, 'easeOutExpo');
 		},
 		
 		close: function () {
