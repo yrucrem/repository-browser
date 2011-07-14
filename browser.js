@@ -86,7 +86,7 @@
 	String.prototype.supplant = function (/*'lDelim, rDelim,'*/ obj) {
 		return this.replace(/\{([a-z0-9\-\_]+)\}/ig, function (str, p1, offset, s) {
 			var replacement = obj[p1] || str;
-			return (typeof replacement == 'function')
+			return (typeof replacement === 'function')
 						? replacement() : replacement;
 		});
 	};
@@ -94,7 +94,7 @@
 	// It is prefered that we render strings through this function rather than
 	// going directly to String.prototype.supplant
 	function renderTemplate (str) {
-		return (typeof str == 'string')
+		return (typeof str === 'string')
 					? str.supplant(nsClasses)
 					: str;
 	};
@@ -184,7 +184,7 @@
 		// TODO: Consider deprecating this
 		// Register user defined implement methods and callbacks, and remove
 		// them from the options object
-		if (typeof options.implement == 'object') {
+		if (typeof options.implement === 'object') {
 			jQuery.each(options.implement, function (k, v) {
 				that[k] = v;
 			});
@@ -193,7 +193,7 @@
 		}
 		
 		// TODO: Consider deprecating this
-		if (typeof options.callbacks == 'object') {
+		if (typeof options.callbacks === 'object') {
 			jQuery.each(options.callbacks, function () {
 				that.callback(this[0], this[1]);
 			});
@@ -314,9 +314,9 @@
 				i, l,
 				func = cb[fn];
 			
-			if (typeof func == 'object') {
+			if (typeof func === 'object') {
 				for (i = 0, l = func.length; i < l; i++) {
-					if (typeof func[i] == 'function') {
+					if (typeof func[i] === 'function') {
 						func[i].call(this, returned);
 					}
 				}
@@ -376,7 +376,7 @@
 		enableCallbacks: function (fn) {
 			var browser_inst = this,
 				func = this[fn];
-			if (typeof func == 'function') {
+			if (typeof func === 'function') {
 				this[fn] = function () {
 					var returned = func.apply(browser_inst, arguments);
 					browser_inst.trigger.call(browser_inst, fn, returned);
@@ -420,7 +420,7 @@
 				data.push(that.harvestRepoObject(this));
 			});
 			
-			if (typeof callback == 'function') {
+			if (typeof callback === 'function') {
 				callback.call(this, data);
 			}
 		},
@@ -464,7 +464,7 @@
 					attr  : {'data-rep-oobj': obj.uid}, 
 					icon  : icon
 				},
-				state: (obj.hasMoreItems || obj.baseType == 'folder') ? 'closed' : null,
+				state: (obj.hasMoreItems || obj.baseType === 'folder') ? 'closed' : null,
 				resource: obj
 			};
 		},
@@ -473,7 +473,7 @@
 			this.getRepoChildren(
 				{inFolderId: this.rootFolderId},
 				function (data) {
-					if (typeof callback == 'function') {
+					if (typeof callback === 'function') {
 						callback(data);
 					}
 				}
@@ -512,7 +512,7 @@
 		fetchChildren: function (obj, callback) {
 			var that = this;
 			
-			if (obj.hasMoreItems == true || obj.baseType == 'folder') {
+			if (obj.hasMoreItems == true || obj.baseType === 'folder') {
 				if (obj.loaded == false) {
 					this.getRepoChildren(
 						{
@@ -522,7 +522,7 @@
 						function (data) {
 							that._objs[obj.uid].loaded = true;
 							
-							if (typeof callback == 'function') {
+							if (typeof callback === 'function') {
 								callback(data);
 							}
 						}
@@ -535,7 +535,7 @@
 			var uid,
 				obj;
 			
-			if (typeof node == 'object') {
+			if (typeof node === 'object') {
 				uid = node.find('a:first').attr('data-rep-oobj');
 				obj = this._objs[uid];
 			}
@@ -560,12 +560,12 @@
 		
 		createTree: function (container) {
 			var that = this,
-				tree = jQuery(renderTemplate('<div class="{tree}"></div>')),
-				header =  jQuery(renderTemplate('				\
-					<div class="{tree-header} {grab-handle}">	\
-						Repository Browser						\
-					</div>										\
-				'));
+				tree = jQuery(renderTemplate('<div class="{tree}">')),
+				header =  jQuery(renderTemplate(
+					'<div class="{tree-header} {grab-handle}">\
+						Repository Browser\
+					</div>'
+				));
 			
 			container.append(header, tree);
 			
@@ -583,13 +583,14 @@
 					// Fix for what seems to be a bug with jsTree
 					if (data.args[0].context) {return;}
 					
-					if (typeof obj == 'object') {
+					if (typeof obj === 'object') {
 						that._pagingOffset = 0;
 						that._searchQuery = null;
 						that.fetchItems(obj, that.processItems);
 					}
 				})
 				.jstree({
+					rootFolderId: '3',
 					plugins: ['themes', 'json_data', 'ui'],
 					core: {
 						// TODO: Override the standard animation by
@@ -895,7 +896,7 @@
 				//	repositoryId	 : obj.repositoryId
 				},
 				function (data) {
-					if (typeof callback == 'function') {
+					if (typeof callback === 'function') {
 						callback.call(that, data);
 					}
 				}
@@ -907,7 +908,7 @@
 				this.fetchRepoRoot(callback);
 			} else {
 				var obj = this.getObjectFromCache(node);
-				if (typeof obj == 'object') {
+				if (typeof obj === 'object') {
 					this.fetchChildren(obj, callback);
 				}
 			}
