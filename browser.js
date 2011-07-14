@@ -134,7 +134,7 @@
 			// The repository manager which this browser will interface with
 			repositoryManager: Aloha.RepositoryManager,
 			objectTypeFilter: [],
-			renditionFilter: ['cmis:thumbnail', 'image/*'], // ['*']
+			renditionFilter: ['cmis:none'], // ['*']
 			filter: ['url'],
 			// DOMObject to which this instance of browser is bound to
 			element: undefined,
@@ -405,7 +405,6 @@
 			var that = this;
 			
 			this.repositoryManager.query(params, function (response) {
-				console.log(response);
 				that.processRepoResponse(
 					(response.results > 0) ? response.items : [],
 					callback
@@ -486,33 +485,15 @@
 		 * @param Object item - Repository resource for a row
 		 */
 		renderRowCols: function (item) {
-			var row = {},
-				rend,
-				j;
+			var row = {};
 			
-			jQuery.each(this.columns, function (col, v) {
-				switch (col) {
+			jQuery.each(this.columns, function (colName, v) {
+				switch (colName) {
 				case 'icon':
-					row[col] = '<div class="aloha-browser-icon aloha-browser-icon-' + item.type + '"></div>';
-					break;
-				case 'preview':
-					rend = item.renditions;
-					if (rend && (j = rend.length)) {
-						row[col]  = '';
-						while (j-- > 0) {
-							if (rend[j].kind == 'thumbnail') {
-								row[col] += (
-									'<img src="{url}"\
-										  alt="{kind}"\
-										  style="width:{width}px; height:{height}px; margin:5px;"\
-										  />'
-								).supplant(rend[j]);
-							}
-						 }
-					}
+					row.icon = '<div class="aloha-browser-icon aloha-browser-icon-' + item.type + '"></div>';
 					break;
 				default:
-					row[col] = item[col] || '--';
+					row[colName] = item[colName] || '--';
 				}
 			});
 			
