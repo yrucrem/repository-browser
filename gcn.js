@@ -13,10 +13,6 @@
 		 jQuery = window.alohaQuery || window.jQuery,
 		  Aloha = window.Aloha;
 	
-	// What happends when aloha if fired?
-	// Aloha-Editor is fully loaded?
-	// What is core when alohacoreloaded is fired
-	
 	function createRepository () {
 		/**
 		 * Create the Repositories object. Namespace for Repositories
@@ -30,14 +26,13 @@
 	function initializeRepository () {
 		
 		var host = 'http://cms.soc-aacc.office',
-			sid = '3184233YHA2po4L9qvtpr';
+			sid;
 		
 		jQuery.ajax({
 			url: '/Aloha-Editor/Aloha-Editor-Browser/src/demo/browser/gcn_proxy.php?url='
 				 + encodeURIComponent('http://cms.soc-aacc.office/.Node/?do=31&login=node&password=node'),
-			error: function(data) {
-			},
-			success: function(data) {
+			error: function (data) {},
+			success: function (data) {
 				var json = JSON.parse(data);
 				sid = json.sessionToken;
 			}
@@ -54,9 +49,9 @@
 		/**
 		 * register the plugin with unique name
 		 */
-		var repo = Aloha.Repositories.GCNRepo = new Aloha.Repository('GCNRepo');
+		var Repo = Aloha.Repositories.GCNRepo = new Aloha.Repository('GCNRepo');
 		
-		repo.init = function () {
+		Repo.init = function () {
 			this.repositoryName = 'GCNRepo';
 		};
 		
@@ -64,7 +59,7 @@
 		 * Convert orderBy from [{field: order} ...] to [{by:field, order:order} ...]
 		 * for easier access in sort comparison function
 		 */
-		repo.buildSortPairs = function (orderBy) {
+		Repo.buildSortPairs = function (orderBy) {
 			if (orderBy == null) {
 				return [];
 			}
@@ -79,7 +74,7 @@
 				sort = orderBy[i];
 				for (field in sort) {
 					order = sort[field];
-					if (typeof order == 'string') {
+					if (typeof order === 'string') {
 						order = order.toLowerCase();
 						if (order == 'asc' || order == 'desc') {
 							newOrder[i] = {by: field, order: order};
@@ -103,7 +98,7 @@
 		 *						(include web ready Renditions)
 		 *		cmis:none		(exclude all Renditions)
 		 */
-		repo.buildRenditionFilterChecks = function (filters) {
+		Repo.buildRenditionFilterChecks = function (filters) {
 			var f,
 			    pattern,
 				type,
@@ -150,11 +145,12 @@
 		 *
 		 * TODO: implement cache
 		 */
-		repo.query = function (params, callback) {
+		Repo.query = function (params, callback) {
 			if (!params
 					|| !params.objectTypeFilter
 						|| jQuery.inArray('page', params.objectTypeFilter) == -1) {
 				callback.call(this, []);
+				return;
 			}
 			
 			var that = this;
@@ -177,7 +173,7 @@
 			jQuery.ajax(request);
 		};
 		
-		repo.processQueryResults = function (data, params, callback) {
+		Repo.processQueryResults = function (data, params, callback) {
 			var data = data.pages,
 				skipCount = params.skipCount || 0,
 				l = data.length,
@@ -196,9 +192,7 @@
 				hasRenditionFilter = params.renditionFilter.length > 0;
 			}
 			
-			var contentSets = {
-			
-			};
+			var contentSets = {};
 			
 			for (; i < l; i++) {
 				elem = data[i];
@@ -234,7 +228,30 @@
 				}
 			};
 			
-			console.log(contentSets);
+			// Build renditions from contentSet hash table
+			var renditions = {};
+			jQuery.each(contentSets, function () {
+				var members = [],
+					i = 1,
+					j = this.length,
+					r;
+				
+				for (; i < j; i++) {
+					var r = this[i];
+					members.push({
+						id		: r.id,	
+						url		: r.path + r.fileName,
+						filename: r.fileName,
+						kind	: 'translation',
+						language: r.language,
+						mimeType: 'text/html',
+						height	: null,
+						width	: null
+					});
+				}
+				
+				renditions[this[0].id] = members;
+			});
 			
 			var orderBy = this.buildSortPairs(params.orderBy);
 			
@@ -266,12 +283,12 @@
 			
 			results = results.slice(0, params.maxItems || l);
 			
-			if (hasRenditionFilter && (i = results.length) && typeof _renditions != 'undefined') {
+			if (hasRenditionFilter && (i = results.length) && renditions) {
 				var renditionChecks = this.buildRenditionFilterChecks(params.renditionFilter),
 					r;
 				
 				while (i--) {
-					if (r = _renditions[results[i].id]) {
+					if (r = renditions[results[i].id]) {
 						results[i].renditions =
 							this.getRenditions(r, renditionChecks);
 					} else {
@@ -283,7 +300,7 @@
 			callback.call(this, results);
 		};
 		
-		repo.getRenditions = function (renditions, renditionChecks) {
+		Repo.getRenditions = function (renditions, renditionChecks) {
 			var matches = [],
 			    alreadyMatched = [],
 			    check,
@@ -311,7 +328,7 @@
 			return matches;
 		};
 		
-		repo.getChildren = function(p, callback) {
+		Repo.getChildren = function(p, callback) {
 			var that = this,
 				
 				inFolderId = 1, // TODO: use p.inFolderId?
@@ -336,8 +353,6 @@
 							for (var i = 0, j = folders.length; i < j; i++) {
 								folder = folders[i];
 								
-								console.log(folder);
-								
 								items.push({
 									objectType	 :  'folder',
 									id			 :  folder.id,
@@ -356,7 +371,7 @@
 			jQuery.ajax(request);
 		};
 		
-		repo.handleRestResponse = function (response) {
+		Repo.handleRestResponse = function (response) {
 			if (!response) {
 				this.triggerError('No response data received');
 				return false;
@@ -386,7 +401,7 @@
 		};
 		
 		// Repo Browser not recieving this. Is the problem here?
-		repo.triggerError = function (message) {
+		Repo.triggerError = function (message) {
 			var error = {
 				repository : this,
 				message	   : message
@@ -401,7 +416,7 @@
 		 * @param callback {function} callback function
 		 * @return {Aloha.Repository.Object} item with given id
 		 */
-		repo.getObjectById = function (itemId, callback) {
+		Repo.getObjectById = function (itemId, callback) {
 			var items = [];
 			
 			callback.call(this, items);
