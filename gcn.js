@@ -13,6 +13,25 @@
 		 jQuery = window.alohaQuery || window.jQuery,
 		  Aloha = window.Aloha;
 	
+	var sid = '';
+	
+	function getSid (callback) {
+		jQuery.ajax({
+			url: '/Aloha-Editor/Aloha-Editor-Browser/src/demo/browser/gcn_proxy.php?url='
+				 + encodeURIComponent('http://cms.soc-aacc.office/.Node/?do=31&login=node&password=node'),
+			error: function (data) {},
+			success: function (data) {
+				var json = JSON.parse(data);
+				
+				sid = json.sessionToken;
+				
+				if (side && side != '' && typeof callback === 'function') {
+					callback();
+				}
+			}
+		});
+	};
+	
 	function createRepository () {
 		/**
 		 * Create the Repositories object. Namespace for Repositories
@@ -21,22 +40,12 @@
 		if (!Aloha.Repositories) {
 			Aloha.Repositories = {};
 		}
+		
 	};
 	
 	function initializeRepository () {
 		
-		var host = 'http://cms.soc-aacc.office',
-			sid;
-		
-		jQuery.ajax({
-			url: '/Aloha-Editor/Aloha-Editor-Browser/src/demo/browser/gcn_proxy.php?url='
-				 + encodeURIComponent('http://cms.soc-aacc.office/.Node/?do=31&login=node&password=node'),
-			error: function (data) {},
-			success: function (data) {
-				var json = JSON.parse(data);
-				sid = json.sessionToken;
-			}
-		});
+		var host = 'http://cms.soc-aacc.office';
 		
 		function restURL (method) {
 			var delim = method.match(/\?[^\=]+\=/) ? '&' : '?';
@@ -52,7 +61,7 @@
 		var Repo = Aloha.Repositories.GCNRepo = new Aloha.Repository('GCNRepo');
 		
 		Repo.init = function () {
-			this.repositoryName = 'GCNRepo';
+			this.repositoryName = 'Gentics Content.Node';
 		};
 		
 		/**
@@ -155,22 +164,28 @@
 			
 			var that = this;
 			
-			var request = {
-				url		 : restURL('folder/getPages/' + params.inFolderId + '?recursive=true&insync=true'),
-				dataType : 'json',
-				type	 : 'GET',
-				error	 : function (data) {
-					that.handleRestResponse(data);
-					callback.call(that, []);
-				},
-				success	: function(data) {
-					if (that.handleRestResponse(data)) {
-						that.processQueryResults(data, params, callback);
+			if (!sid || sid == '') {
+				var args = arguments;
+				
+				getSid(function () {
+					that.query.apply(that, args);
+				});
+			} else {
+				jQuery.ajax({
+					url		 : restURL('folder/getPages/' + params.inFolderId),
+					dataType : 'json',
+					type	 : 'GET',
+					error	 : function (data) {
+						that.handleRestResponse(data);
+						callback.call(that, []);
+					},
+					success	: function(data) {
+						if (that.handleRestResponse(data)) {
+							that.processQueryResults(data, params, callback);
+						}
 					}
-				}
-			};
-			
-			jQuery.ajax(request);
+				});
+			}
 		};
 		
 		Repo.processQueryResults = function (data, params, callback) {
@@ -328,13 +343,23 @@
 			return matches;
 		};
 		
-		Repo.getChildren = function(p, callback) {
-			var that = this,
+		Repo.getChildren = function(params, callback) {
+			if (!params || !params.inFolderId) {
+				callback.call(that, []);
+				return;
+			}
+			
+			var that = this;
+			
+			if (!sid || sid == '') {
+				var args = arguments;
 				
-				inFolderId = 1, // TODO: use p.inFolderId?
-				
-				request = {
-					url		 : restURL('folder/getFolders/' + inFolderId),
+				getSid(function () {
+					that.getChildren.apply(that, args);
+				});
+			} else {
+				jQuery.ajax({
+					url		 : restURL('folder/getFolders/' + params.inFolderId + '?recursive=true'),
 					dataType : 'json',
 					type	 : 'GET',
 					// TODO: move this to success when working
@@ -366,9 +391,8 @@
 						
 						callback.call(that, items);
 					}
-				};
-			
-			jQuery.ajax(request);
+				});
+			}
 		};
 		
 		Repo.handleRestResponse = function (response) {
