@@ -25,7 +25,7 @@
 				
 				sid = json.sessionToken;
 				
-				if (side && side != '' && typeof callback === 'function') {
+				if (sid && sid != '' && typeof callback === 'function') {
 					callback();
 				}
 			}
@@ -364,7 +364,7 @@
 					type	 : 'GET',
 					// TODO: move this to success when working
 					error	 : function () {
-						jQuery.('body').trigger('aloha-repository-getChildren-error', that);
+						jQuery('body').trigger('aloha-repository-getChildren-error', that);
 						callback.call(that, items);
 					},
 					
