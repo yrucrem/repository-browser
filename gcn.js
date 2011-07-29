@@ -321,17 +321,9 @@
 				//	links: GENTICS.Aloha.GCN.settings.links
 				};
 				
-				//if (p.queryString) {
-					params.query = p.queryString || undefined;
-				//}
-				
-				//if (p.maxItems) {
-					params.maxItems = p.maxItems || undefined;
-				//}
-				
-				//if (p.skipCount) {
-					params.skipCount = p.skipCount || undefined;
-				//}
+				params.query	 = p.queryString || undefined;
+				params.maxItems	 = p.maxItems	 || undefined;
+				params.skipCount = p.skipCount	 || undefined;
 				
 				if (p.inFolderId) {
 					params.folderId = p.inFolderId;
@@ -390,72 +382,6 @@
 				};
 				
 				collectResults(collection);
-				
-				return;
-				
-				// TODO: We need another way to chain these
-				// what if the combo is fetchPages and fetchImages or fetchFiles and fetchImages?
-				
-				if (fetchPages && fetchFiles && fetchImages) {
-					var collection = [];
-					
-					this.getPages(
-						p.inFolderId,
-						params,
-						collection,
-						function (collection) {
-							that.getFiles(
-								p.inFolderId,
-								params,
-								collection,
-								function (collection) {
-									that.getImages(
-										p.inFolderId,
-										params,
-										collection,
-										processResults
-									);
-								}
-							);
-						}
-					);
-				} else if (fetchPages && fetchFiles) {
-					var collection = [];
-					this.getPages(
-						p.inFolderId,
-						params,
-						collection,
-						function (collection) {
-							that.getFiles(
-								p.inFolderId,
-								params,
-								collection,
-								processResults
-							);
-						}
-					);
-				} else if (fetchPages) {
-					this.getPages(
-						p.inFolderId,
-						params,
-						[],
-						processResults
-					);
-				} else if (fetchFiles) {
-					this.getPages(
-						p.inFolderId,
-						params,
-						[],
-						processResults
-					);
-				} else if (fetchImages) {
-					this.getImages(
-						p.inFolderId,
-						params,
-						[],
-						processResults
-					);
-				}
 			}
 		};
 		
