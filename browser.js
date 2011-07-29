@@ -575,19 +575,22 @@
 					//console.log(data.func);
 				})
 				.bind('loaded.jstree', function (event, data) {
-					jQuery('>ul>li', this).first().css('padding-top', 5);
+					$('>ul>li', this).first().css('padding-top', 5);
 				})
 				.bind('select_node.jstree', function (event, data) {
+					// This fixes a bug in jsTree
+					if (data.args[0].context) {
+						return;
+					}
+					
 					var node = data.rslt.obj,
-						obj = that.getObjectFromCache(node);
+						folder = that.getObjectFromCache(node);
 					
-					// Fix for what seems to be a bug with jsTree
-					if (data.args[0].context) {return;}
-					
-					if (typeof obj === 'object') {
+					if (typeof folder === 'object') {
 						that._pagingOffset = 0;
 						that._searchQuery = null;
-						that.fetchItems(obj, that.processItems);
+						that._currentFolder = folder;
+						that.fetchItems(folder, that.processItems);
 					}
 				})
 				.jstree({
@@ -773,9 +776,7 @@
 			this._pagingOffset = 0;
 			this._searchQuery = search.val();
 			
-			
-			
-			this.fetchItems(this._currentFolderId, this.processItems);
+			this.fetchItems(this._currentFolder, this.processItems);
 		},
 		
 		/**
@@ -794,7 +795,7 @@
 						.removeClass('ui-state-disabled');
 			
 			this.setSortOrder(colModel.name, colModel.sortorder)
-				.fetchItems(this._currentFolderId, this.processItems);
+				.fetchItems(this._currentFolder, this.processItems);
 		},
 		
 		/**
@@ -859,36 +860,25 @@
 			//var grid = this.grid.find('.ui-jqgrid-bdiv');
 			//grid.animate({marginLeft: -grid.width()}, 500);
 			
-			this.fetchItems(this._currentFolderId, this.processItems);
+			this.fetchItems(this._currentFolder, this.processItems);
 		},
 		
-		fetchItems: function (obj, callback) {
-			var that = this,
-				name,
-				typeofObj = typeof obj;
-			
-			if (typeofObj === 'object') {
-				this._currentFolderId =  obj.id;
-				name = obj.name;
-			} else if (typeofObj === 'string' || typeofObj === 'number') {
-				name = this._currentFolderId = obj;
-			} else {
-				name = this._currentFolderId = this.rootFolderId;
-			}
-			
+		fetchItems: function (folder, callback) {
 			this.list.setCaption(
 				(typeof this._searchQuery === 'string')
-					? 'Searching for "' + this._searchQuery + '" in ' + name
-					: 'Browsing: ' + name
+					? 'Searching for "' + this._searchQuery + '" in ' + folder.name
+					: 'Browsing: ' + folder.name
 			);
 			
 			this.list.hide();
 			this.grid.find('.loading').show();
 			
+			var that = this;
+			
 			this.queryRepository(
 				{
 					queryString		 : this._searchQuery,
-					inFolderId		 : this._currentFolderId,
+					inFolderId		 : folder.id,
 					skipCount		 : this._pagingOffset,
 					maxItems		 : this.pageSize,
 					objectTypeFilter : this.objectTypeFilter,
