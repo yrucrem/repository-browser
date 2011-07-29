@@ -24,6 +24,7 @@
 	
 	var GENTICS = window.GENTICS || (window.GENTICS = {}),
 		 jQuery = window.alohaQuery || window.jQuery,
+			  $ = jQuery,
 		  Aloha = window.Aloha || GENTICS.Aloha; // GENTICS.Aloha is for legacy
 	
 	// If jQuery cannot be found then die violently!
@@ -771,6 +772,9 @@
 			
 			this._pagingOffset = 0;
 			this._searchQuery = search.val();
+			
+			
+			
 			this.fetchItems(this._currentFolderId, this.processItems);
 		},
 		
@@ -860,17 +864,15 @@
 		
 		fetchItems: function (obj, callback) {
 			var that = this,
-				name;
+				name,
+				typeofObj = typeof obj;
 			
-			switch (typeof obj) {
-			case 'object':
+			if (typeofObj === 'object') {
 				this._currentFolderId =  obj.id;
 				name = obj.name;
-				break;
-			case 'string':
+			} else if (typeofObj === 'string' || typeofObj === 'number') {
 				name = this._currentFolderId = obj;
-				break;
-			default:
+			} else {
 				name = this._currentFolderId = this.rootFolderId;
 			}
 			
