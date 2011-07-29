@@ -370,8 +370,6 @@
 				var collectResults = function (collection) {
 					var type = documentTypesToCollection.pop();
 					
-					console.warn('collectResults called for: ', type);
-					
 					that.getResources(
 						type,
 						p.inFolderId,
@@ -390,6 +388,8 @@
 		 * doesn't at the moment
 		 */
 		Repo.processQueryResults = function (data, params, callback) {
+			//console.warn(2, arguments);
+			
 			var skipCount = 0,
 				l = data.length,
 				i = 0,
