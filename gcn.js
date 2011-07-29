@@ -406,6 +406,7 @@
 			}
 			
 			var contentSets = {};
+			var contentsetsOfUnreturnedDocs = {};
 			
 			for (; i < l; i++) {
 				elem = documents[i];
@@ -443,25 +444,40 @@
 							contentSets[elem.contentSetId] = [];
 							results[num++] = obj;
 						}
-						
 						contentSets[elem.contentSetId].push(elem);
 					}
+				} else {
+					// The documents does not match the queryString,
+					// nevertheless we may want to have it as a rendition of
+					// another object, so keep a reference to it
+						if (!contentsetsOfUnreturnedDocs[elem.contentSetId]) {
+							contentsetsOfUnreturnedDocs[elem.contentSetId] = [];
+						}
+						contentsetsOfUnreturnedDocs[elem.contentSetId].push(elem);
 				}
 			};
 			
 			// Build renditions from contentSet hash
 			var renditions = {};
-			$.each(contentSets, function () {
-				var members = [],
-					// Skip the first one, because this will be the returned
-					// result of which the other documents in the contentSet
-					// are rendition of
-					i = 1,
-					j = this.length,
-					r;
+			$.each(contentSets, function (key, contentSet) {
+				var setOfUnreturnedDocs = contentsetsOfUnreturnedDocs[key];
+				var set = setOfUnreturnedDocs
+							? Array.prototype.concat(contentSet, setOfUnreturnedDocs)
+							: contentSet;
 				
-				for (; i < j; i++) {
-					var r = this[i];
+				// Skip the first one, because this will be the returned
+				// result of which the other documents in the contentSet
+				// are rendition of
+				for (var i = 1,
+						 j = set.length,
+						 members = [],
+						 r;
+						 
+						 i < j;
+						 
+						 i++) {
+					r = set[i];
+					
 					members.push({
 						id		: r.id,	
 						url		: r.path + r.fileName,
