@@ -5,12 +5,14 @@
  * Licensed unter the terms of http://www.aloha-editor.com/license.html
  */
 
-(function (window, undefined) {
+(function GCNRepositoryClosure (window, undefined) {
 	
 	'use strict'
 	
-	var GENTICS = window.GENTICS || (window.GENTICS = {}),
+	var
+		GENTICS = window.GENTICS || (window.GENTICS = {}),
 		 jQuery = window.alohaQuery || window.jQuery,
+			  $ = jQuery, 
 		  Aloha = window.Aloha;
 	
 	var sid = '';
@@ -18,7 +20,7 @@
 	function getSid (callback) {
 		jQuery.ajax({
 			url: '/Aloha-Editor/Aloha-Editor-Browser/src/demo/browser/gcn_proxy.php?url='
-				 + encodeURIComponent('http://cms.soc-aacc.office/.Node/?do=31&login=node&password=node'),
+				 + encodeURIComponent('http://soc-aacc-cms.gentics.com/.Node/?do=31&login=node&password=node'),
 			error: function (data) {},
 			success: function (data) {
 				var json = JSON.parse(data);
@@ -32,7 +34,7 @@
 		});
 	};
 	
-	function createRepository () {
+	function createRepositories () {
 		/**
 		 * Create the Repositories object. Namespace for Repositories
 		 * @hide
@@ -40,12 +42,12 @@
 		if (!Aloha.Repositories) {
 			Aloha.Repositories = {};
 		}
-		
 	};
 	
 	function initializeRepository () {
 		
-		var host = 'http://cms.soc-aacc.office';
+		// put this to config object
+		var host = 'http://soc-aacc-cms.gentics.com';
 		
 		function restURL (method) {
 			var delim = method.match(/\?[^\=]+\=/) ? '&' : '?';
@@ -58,6 +60,7 @@
 		/**
 		 * register the plugin with unique name
 		 */
+		 // Aloha.Respository is now Aloha.AbstractRepository
 		var Repo = Aloha.Repositories.GCNRepo = new Aloha.Repository('com.gentics.aloha.GCN.Document');
 		
 		Repo.init = function () {
@@ -149,7 +152,7 @@
 		};
 		
 		/**
-		 * Transform the given data (fetched from the backend) into a repository folder
+		 * Transforms the given data (fetched from the backend) into a repository folder
 		 * @param {Object} data data of a folder fetched from the backend
 		 * @return {GENTICS.Aloha.Repository.Object} repository item
 		 */
@@ -159,15 +162,16 @@
 			}
 			
 			return new Aloha.Repository.Folder({
-				repositoryId: this.repositoryId,
-				type: 'folder',
-				id: data.id,
-				name: data.name
+				repositoryId
+					 : this.repositoryId,
+				type : 'folder',
+				id	 : data.id,
+				name : data.name
 			});
 		};
-
+		
 		/**
-		 * Transform the given data (fetched from the backend) into a repository item
+		 * Transforms the given data (fetched from the backend) into a repository item
 		 * @param {Object} data data of a page fetched from the backend
 		 * @return {GENTICS.Aloha.Repository.Object} repository item
 		 */
@@ -176,7 +180,7 @@
 				return null;
 			}
 			
-			objecttype = objecttype || 10007;
+			objecttype = objecttype || '10007';
 			// set the id
 			data.id = objecttype + '.' + data.id;
 			
@@ -190,28 +194,67 @@
 			
 			data.path = path;
 			
-			// TODO make this more efficient (don't make a single call for every url)
-			if (data.url && GENTICS.Aloha.GCN.settings.renderBlockContentURL) {
-				data.url = GENTICS.Aloha.GCN.renderBlockContent(data.url);
-			}
+			// TODO make this more efficient (you don't have to make a call for every url)
+			//if (data.url && GENTICS.Aloha.GCN.settings.renderBlockContentURL) {
+			//	data.url = GENTICS.Aloha.GCN.renderBlockContent(data.url);
+			//}
 			
 			data.repositoryId = this.repositoryId;
 			
 			return new Aloha.Repository.Document(data);
 		};
 		
-		Repo.getPages = function (id, params, collection, callback) {
-			var that = this;
+		/**
+		 * This is the workhorse method for getPage, getImage, getFile methods.
+		 * If we don't have a method to handle the type of resource requested,
+		 * we invoke the callback with an empty array and log a warning.
+		 *
+		 * @param {string}	 type - of resource to query for (page, file, image)
+		 * @param {string}	 id
+		 * @param {object}	 params
+		 * @param {array}	 collection - the array to which we add found documents
+		 * @param {function} callback
+		 * @return {undefined}
+		 */
+		Repo.getResources = function (type, id, params, collection, callback) {
+			
+			var that = this,
+				restMethod,
+				docTypeNum ;
+			
+			switch (type) {
+			case 'page':
+				restMethod = 'getPages';
+				docTypeNum = '10007';
+				break;
+			case 'file':
+				restMethod = 'getFiles';
+				docTypeNum = '10008';
+				break;
+			case 'image':
+				restMethod = 'getImages';
+				docTypeNum = '10009'; // FIXME: Confirm that this is correct for files
+				break;
+			default:
+				console.warn(
+					'This repository has not method to query for resource type "' + type + '"\n\
+					available resources are page, image, and file'
+				);
+				callback(collection);
+				return;
+			};
 			
 			jQuery.ajax({
-				url		 : restURL('folder/getPages/' + id),
+				url		 : restURL('folder/' + restMethod + '/' + id),
 				params	 : params,
 				dataType : 'json',
 				type	 : 'GET',
-				error	 : function (data) {
+				
+				error : function (data) {
 					that.handleRestResponse(data);
 					callback(collection);
 				},
+				
 				success	: function (data) {
 					if (that.handleRestResponse(data)) {
 						if (typeof collection !== 'object') {
@@ -219,7 +262,7 @@
 						}
 						
 						for (var i = 0; i < data.pages.length; i++) {
-							data.pages[i] = that.getDocument(data.pages[i], '10007');
+							data.pages[i] = that.getDocument(data.pages[i], docTypeNum);
 							collection.push(data.pages[i]);
 						}
 					}
@@ -229,76 +272,61 @@
 			});
 		};
 		
-		Repo.getFiles = function (id, params, collection, callback) {
-			var that = this;
-			
-			jQuery.ajax({
-				url		 : restURL('folder/getFiles/' + id),
-				params	 : params,
-				dataType : 'json',
-				type	 : 'GET',
-				error	 : function (data) {
-					that.handleRestResponse(data);
-					callback(collection);
-				},
-				success	: function (data) {
-					if (that.handleRestResponse(data)) {
-						if (typeof collection !== 'object') {
-							collection = [];
-						}
-						
-						for (var i = 0; i < data.files.length; ++i) {
-							data.files[i] = that.getDocument(data.files[i], '10008');
-							collection.push(data.files[i]);
-						}
-					}
-					
-					callback(collection);
-				}
-			});
-		};
-		
-		Repo.getImages = function (id, params, collection, callback) {
-			var that = this;
-			
-			jQuery.ajax({
-				url		 : restURL('folder/getImages/' + id),
-				params	 : params,
-				dataType : 'json',
-				type	 : 'GET',
-				error	 : function (data) {
-					that.handleRestResponse(data);
-					callback(collection);
-				},
-				success	: function (data) {
-					if (that.handleRestResponse(data)) {
-						if (typeof collection !== 'object') {
-							collection = [];
-						}
-						
-						for (var i = 0; i < data.images.length; ++i) {
-							data.images[i] = that.getDocument(data.images[i], '10009'); // TODO confirm 10009
-							collection.push(data.images[i]);
-						}
-					}
-					
-					callback(collection);
-				}
-			});
+		/**
+		 * Delegates to Repo.getResources
+		 * @return {undefined}
+		 */
+		Repo.getPages = function (id, params, collection, callback) {
+			return this.getResources('page', id, params, collection, callback);
 		};
 		
 		/**
-		 * Searches a repository for object items matching query if objectTypeFilter.
-		 * If none found it returns null.
-		 *
-		 * TODO: implement cache
+		 * Delegates to Repo.getResources
+		 * @return {undefined}
 		 */
-		Repo.query = function (p, callback) {
-			var that = this;
+		Repo.getFiles = function (id, params, collection, callback) {
+			return this.getResources('file', id, params, collection, callback);
+		};
+		
+		/**
+		 * Delegates to Repo.getResources
+		 * @return {undefined}
+		 */
+		Repo.getImages = function (id, params, collection, callback) {
+			return this.getResources('image', id, params, collection, callback);
+		};
+		
+		/**
+		 * Searches a repository for items matching the given query.
+		 * The results are passed as an array to the callback.
+		 * If no objects are found the callback receives null.
+		 *
+		 * TODO: implement caching
+		 *
+		 * @param {object}	 query - query parameters.
+		 *					 An example query parameters object could look something like this:
+		 *						{
+		 * 							filter		: ["language"],
+		 * 							inFolderId	: 4,
+		 * 							maxItems	: 10,
+		 * 							objectTypeFilter
+		 *										: ["website", "files"],
+		 * 							orderBy		: null,
+		 * 							queryString	: null,
+		 * 							renditionFilter
+		 *										: ["*"],
+		 * 							skipCount	: 0
+		 *						}
+		 * @param {function} callback
+		 * @return {undefined}
+		 */
+		Repo.query = function (query, callback) {
+			var that = this,
+				p = query;
 			
+			// If we don't have a session id, get it and invoke this method again
 			if (!sid || sid == '') {
 				var args = arguments;
-				
 				getSid(function () {
 					that.query.apply(that, args);
 				});
@@ -312,37 +340,37 @@
 				//	links: GENTICS.Aloha.GCN.settings.links
 				};
 				
-				if (p.queryString) {
-					params.query = p.queryString;
-				}
+				//if (p.queryString) {
+					params.query = p.queryString || undefined;
+				//}
 				
-				if (p.maxItems) {
-					params.maxItems = p.maxItems;
-				}
+				//if (p.maxItems) {
+					params.maxItems = p.maxItems || undefined;
+				//}
 				
-				if (p.skipCount) {
-					params.skipCount = p.skipCount;
-				}
+				//if (p.skipCount) {
+					params.skipCount = p.skipCount || undefined;
+				//}
 				
 				if (p.inFolderId) {
 					params.folderId = p.inFolderId;
 					params.recursive = false;
 				}
-					
+				
 				var fetchPages = true,
 					fetchFiles = true,
 					fetchImages = true;
 				
 				if (p.objectTypeFilter && p.objectTypeFilter.length) {
-					if(jQuery.inArray('website', p.objectTypeFilter) == -1) {
+					if($.inArray('website', p.objectTypeFilter) == -1) {
 						fetchPages = false;
 					}
 					
-					if(jQuery.inArray('files', p.objectTypeFilter) == -1) {
+					if($.inArray('files', p.objectTypeFilter) == -1) {
 						fetchFiles = false;
 					}
 					
-					if(jQuery.inArray('images', p.objectTypeFilter) == -1) {
+					if($.inArray('images', p.objectTypeFilter) == -1) {
 						fetchImages = false;
 					}
 				}
@@ -689,7 +717,7 @@
 	jQuery(function () {
 		jQuery('body')
 			.bind('aloha', initializeRepository)
-			.bind('alohacoreloaded', createRepository);
+			.bind('alohacoreloaded', createRepositories);
 	});
 	
 })(window);
