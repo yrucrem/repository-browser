@@ -321,7 +321,7 @@
 				//	links: GENTICS.Aloha.GCN.settings.links
 				};
 				
-				params.query	 = p.queryString || undefined;
+				params.search	 = p.queryString || undefined;
 				params.maxItems	 = p.maxItems	 || undefined;
 				params.skipCount = p.skipCount	 || undefined;
 				
@@ -410,7 +410,7 @@
 			for (; i < l; i++) {
 				elem = documents[i];
 				
-				if (!hasQueryString || elem.name.match(rgxp) || elem.url.match(rgxp)) {
+				if (!hasQueryString || (elem.name && elem.name.match(rgxp)) || (elem.path && elem.path.match(rgxp))) {
 					if (skipCount) {
 						skipCount--;
 					} else {
