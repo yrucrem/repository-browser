@@ -18,7 +18,7 @@
 	var sid = '';
 	
 	function getSid (callback) {
-		jQuery.ajax({
+		$.ajax({
 			url: '/Aloha-Editor/Aloha-Editor-Browser/src/demo/browser/gcn_proxy.php?url='
 				 + encodeURIComponent('http://soc-aacc-cms.gentics.com/.Node/?do=31&login=node&password=node'),
 			error: function (data) {},
@@ -46,7 +46,7 @@
 	
 	function initializeRepository () {
 		
-		// put this to config object
+		// FIXME: Put this to config object
 		var host = 'http://soc-aacc-cms.gentics.com';
 		
 		function restURL (method) {
@@ -211,7 +211,7 @@
 		 *
 		 * @param {string}	 type - of resource to query for (page, file, image)
 		 * @param {string}	 id
-		 * @param {object}	 params
+		 * @param {object}	 params - xhr query parameters
 		 * @param {array}	 collection - the array to which we add found documents
 		 * @param {function} callback
 		 * @return {undefined}
@@ -247,9 +247,9 @@
 				return;
 			};
 			
-			jQuery.ajax({
+			$.ajax({
 				url		 : restURL('folder/' + restMethod + '/' + folderId),
-				params	 : params,
+				data	 : params,
 				dataType : 'json',
 				type	 : 'GET',
 				
@@ -550,7 +550,7 @@
 					}
 					
 					matched
-						&& jQuery.inArray(j, alreadyMatched) == -1
+						&& $.inArray(j, alreadyMatched) == -1
 							&& matches.push(renditions[j])
 								&& alreadyMatched.push(j);
 				}
@@ -573,7 +573,7 @@
 					params.inFolderId = 0;
 				}
 				
-				jQuery.ajax({
+				$.ajax({
 					url		: restURL('folder/getFolders/' + params.inFolderId + '?recursive=true'),
 					dataType: 'json',
 					type	: 'GET',
@@ -618,7 +618,7 @@
 			if (itemId.match(/^10007./)) {
 				itemId = itemId.substr(6);
 			}
-			jQuery.ajax ({
+			$.ajax ({
 				url: restURL('page/load/' + itemId),
 				type: 'GET',
 				success: function(data) {
@@ -664,14 +664,14 @@
 				repository : this,
 				message	   : message
 			};
-			jQuery('body').trigger('aloha-repository-error', error);
+			$('body').trigger('aloha-repository-error', error);
 			console.warn(error);
 		};
 		
 	};
 	
-	jQuery(function () {
-		jQuery('body')
+	$(function () {
+		$('body')
 			.bind('aloha', initializeRepository)
 			.bind('alohacoreloaded', createRepositories);
 	});
