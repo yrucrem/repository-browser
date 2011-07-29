@@ -205,7 +205,7 @@
 		};
 		
 		/**
-		 * This is the workhorse method for getPage, getImage, getFile methods.
+		 * Queries for a resource of a given type against specified parameters.
 		 * If we don't have a method to handle the type of resource requested,
 		 * we invoke the callback with an empty array and log a warning.
 		 *
@@ -216,23 +216,26 @@
 		 * @param {function} callback
 		 * @return {undefined}
 		 */
-		Repo.getResources = function (type, id, params, collection, callback) {
-			
+		Repo.getResources = function (type, folderId, params, collection, callback) {
 			var that = this,
 				restMethod,
-				docTypeNum ;
+				objName,
+				docTypeNum;
 			
 			switch (type) {
 			case 'page':
 				restMethod = 'getPages';
+				objName = 'pages';
 				docTypeNum = '10007';
 				break;
 			case 'file':
 				restMethod = 'getFiles';
+				objName = 'files';
 				docTypeNum = '10008';
 				break;
 			case 'image':
 				restMethod = 'getImages';
+				objName = 'image';
 				docTypeNum = '10009'; // FIXME: Confirm that this is correct for files
 				break;
 			default:
@@ -245,7 +248,7 @@
 			};
 			
 			jQuery.ajax({
-				url		 : restURL('folder/' + restMethod + '/' + id),
+				url		 : restURL('folder/' + restMethod + '/' + folderId),
 				params	 : params,
 				dataType : 'json',
 				type	 : 'GET',
@@ -261,39 +264,17 @@
 							collection = [];
 						}
 						
-						for (var i = 0; i < data.pages.length; i++) {
-							data.pages[i] = that.getDocument(data.pages[i], docTypeNum);
-							collection.push(data.pages[i]);
+						var objs = data[objName];
+						
+						for (var i = 0, j = objs.length; i < j; i++) {
+							objs[i] = that.getDocument(objs[i], docTypeNum);
+							collection.push(objs[i]);
 						}
 					}
 					
 					callback(collection);
 				}
 			});
-		};
-		
-		/**
-		 * Delegates to Repo.getResources
-		 * @return {undefined}
-		 */
-		Repo.getPages = function (id, params, collection, callback) {
-			return this.getResources('page', id, params, collection, callback);
-		};
-		
-		/**
-		 * Delegates to Repo.getResources
-		 * @return {undefined}
-		 */
-		Repo.getFiles = function (id, params, collection, callback) {
-			return this.getResources('file', id, params, collection, callback);
-		};
-		
-		/**
-		 * Delegates to Repo.getResources
-		 * @return {undefined}
-		 */
-		Repo.getImages = function (id, params, collection, callback) {
-			return this.getResources('image', id, params, collection, callback);
 		};
 		
 		/**
@@ -357,30 +338,63 @@
 					params.recursive = false;
 				}
 				
-				var fetchPages = true,
-					fetchFiles = true,
-					fetchImages = true;
+				// If objectTypeFilter has been specified, then only check for
+				// resources of types found in objectTypeFilter array.
+				// Otherwise collect everthing.
+				var documentTypesToCollection;
 				
 				if (p.objectTypeFilter && p.objectTypeFilter.length) {
-					if($.inArray('website', p.objectTypeFilter) == -1) {
-						fetchPages = false;
+					documentTypesToCollection = [];
+					
+					if($.inArray('website', p.objectTypeFilter) > -1) {
+						documentTypesToCollection.push('page');
 					}
 					
-					if($.inArray('files', p.objectTypeFilter) == -1) {
-						fetchFiles = false;
+					if($.inArray('files', p.objectTypeFilter) > -1) {
+						documentTypesToCollection.push('file');
 					}
 					
-					if($.inArray('images', p.objectTypeFilter) == -1) {
-						fetchImages = false;
+					if($.inArray('images', p.objectTypeFilter) > -1) {
+						documentTypesToCollection.push('image');
 					}
+				} else {
+					documentTypesToCollection = ['page', 'file', 'image'];
 				}
 				
+				// Once all resources have been collected through their
+				// respective methods, we then call processQueryResults, and
+				// pass to it the array of repo documents found, the original
+				// params object, and the original callback expecting to
+				// receive the final processed results
 				var processResults = function (data) {
 					that.processQueryResults(data, params, callback);
 				};
 				
+				var collection = [];
+				
+				// Recursively query for objects types specified in
+				// documentTypesToCollection. Pop documentTypesToCollection
+				// on each iteration until documentTypesToCollection is empty
+				var collectResults = function (collection) {
+					var type = documentTypesToCollection.pop();
+					
+					console.warn('collectResults called for: ', type);
+					
+					that.getResources(
+						type,
+						p.inFolderId,
+						params,
+						collection,
+						documentTypesToCollection.length ? collectResults : processResults
+					);
+				};
+				
+				collectResults(collection);
+				
+				return;
+				
 				// TODO: We need another way to chain these
-				// what if the combo is fetchPages and fetchImages or fetchFiles and fetchIMages?
+				// what if the combo is fetchPages and fetchImages or fetchFiles and fetchImages?
 				
 				if (fetchPages && fetchFiles && fetchImages) {
 					var collection = [];
