@@ -358,8 +358,8 @@
 				// pass to it the array of repo documents found, the original
 				// params object, and the original callback expecting to
 				// receive the final processed results
-				var processResults = function (data) {
-					that.processQueryResults(data, params, callback);
+				var processResults = function (collection) {
+					that.processQueryResults(collection, query, callback);
 				};
 				
 				var collection = [];
@@ -387,11 +387,9 @@
 		 * Handles queryString, filter, and renditionFilter which the REST-API
 		 * doesn't at the moment
 		 */
-		Repo.processQueryResults = function (data, params, callback) {
-			//console.warn(2, arguments);
-			
+		Repo.processQueryResults = function (documents, params, callback) {
 			var skipCount = 0,
-				l = data.length,
+				l = documents.length,
 				i = 0,
 				num = 0,
 				results = [],
@@ -410,26 +408,34 @@
 			var contentSets = {};
 			
 			for (; i < l; i++) {
-				elem = data[i];
+				elem = documents[i];
 				
-				if ( !hasQueryString || elem.name.match(rgxp) || elem.url.match(rgxp) ) {
+				if (!hasQueryString || elem.name.match(rgxp) || elem.url.match(rgxp)) {
 					if (skipCount) {
 						skipCount--;
 					} else {
 						if (hasFilter) {
-							// Copy all required fields
+							// Filter out all unrequired properties from each
+							// object, and leave only those specified in the
+							// filter array
+							
+							// Copy all fields that returned objects must
+							// contain, according to Repository specification
 							obj = {
 								id		 : elem.id,
 								name	 : elem.name,
 								baseType : 'document',	// TODO: could we use contentGroupId?
-								type	 : 'page'
+								type	 : 'page'		// FIXME: What if it's an image of file
 							};
 							
-							// Copy all requested fields
+							// Copy all requested fields specified in filter
+							// array
 							for (var f = 0; f < params.filter.length; f++) {
 								obj[params.filter[f]] = elem[params.filter[f]];
 							}
 						} else {
+							// If no filter is specified, then return all
+							// properties of each documents
 							obj = elem;
 						}
 						
@@ -443,10 +449,13 @@
 				}
 			};
 			
-			// Build renditions from contentSet hash table
+			// Build renditions from contentSet hash
 			var renditions = {};
-			jQuery.each(contentSets, function () {
+			$.each(contentSets, function () {
 				var members = [],
+					// Skip the first one, because this will be the returned
+					// result of which the other documents in the contentSet
+					// are rendition of
 					i = 1,
 					j = this.length,
 					r;
@@ -465,14 +474,18 @@
 					});
 				}
 				
+				// The key for this set of renditions is the id of the first
+				// document in the contentSet from which these renditions
+				// belong to
 				renditions[this[0].id] = members;
 			});
 			
 			var orderBy = this.buildSortPairs(params.orderBy);
 			
-			if (orderBy.length > 9999) {
-				// Algorithm to sort entries based on order of each columns
-				// importance as defined by order of sortorder-sortby pairs
+			if (orderBy.length) {
+				// Predicate function to sort entries based on order of each
+				// column's importance as defined by order of sortorder-sortby
+				// pairs
 				results.sort(function (a, b) {
 					var i = 0,
 						j = orderBy.length,
@@ -496,7 +509,10 @@
 				});
 			}
 			
-			results = results.slice(0, params.maxItems || l);
+			// Truncate results at maxItems
+			if (typeof params.maxItems === 'number') {
+				results = results.slice(0, params.maxItems);
+			}
 			
 			if (hasRenditionFilter && (i = results.length) && renditions) {
 				var renditionChecks = this.buildRenditionFilterChecks(params.renditionFilter),
