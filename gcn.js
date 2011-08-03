@@ -9,6 +9,8 @@
 	
 	'use strict'
 	
+	var DEBUG = false;
+	
 	var
 		GENTICS = window.GENTICS || (window.GENTICS = {}),
 		 jQuery = window.alohaQuery || window.jQuery,
@@ -34,11 +36,11 @@
 		});
 	};
 	
+	/**
+	 * Create the Repositories object. Namespace for Repositories
+	 * @hide
+	 */
 	function createRepositories () {
-		/**
-		 * Create the Repositories object. Namespace for Repositories
-		 * @hide
-		 */
 		if (!Aloha.Repositories) {
 			Aloha.Repositories = {};
 		}
@@ -46,8 +48,8 @@
 	
 	function initializeRepository () {
 		
-		// FIXME: Put this to config object
 		var host = 'http://soc-aacc-cms.gentics.com';
+		var isDebugging = (DEBUG === true);
 		
 		function restURL (method) {
 			var delim = method.match(/\?[^\=]+\=/) ? '&' : '?';
@@ -55,6 +57,17 @@
 			
 			return '/Aloha-Editor/Aloha-Editor-Browser/src/demo/browser/gcn_proxy.php?url='
 				+ encodeURIComponent(url);
+		};
+		
+		function debug () {
+			if (isDebugging) {
+				console.log.apply(
+					{},
+					['-- debug ------------------------------------------------\n'].concat(
+					Array.prototype.slice.call(arguments),
+					'\n-- /debug -----------------------------------------------')
+				);
+			}
 		};
 		
 		/**
@@ -68,11 +81,12 @@
 		};
 		
 		/**
-		 * Convert orderBy from [{field: order} ...] to [{by:field, order:order} ...]
-		 * for easier access in sort comparison function
+		 * Convert orderBy from [{field: order} ...], which is easier for the
+		 * user to write into [{by:field, order:order} ...] which is easier for
+		 * the sort comparison function to use
 		 */
 		Repo.buildSortPairs = function (orderBy) {
-			if (orderBy == null) {
+			if (!orderBy) {
 				return [];
 			}
 			
@@ -152,8 +166,9 @@
 		};
 		
 		/**
-		 * Transforms the given data (fetched from the backend) into a repository folder
-		 * @param {Object} data data of a folder fetched from the backend
+		 * Transforms the given data, that was fetched from the backend, into a
+		 * repository folder
+		 * @param {object} data data of a folder fetched from the backend
 		 * @return {GENTICS.Aloha.Repository.Object} repository item
 		 */
 		Repo.getFolder = function(data) {
@@ -171,8 +186,9 @@
 		};
 		
 		/**
-		 * Transforms the given data (fetched from the backend) into a repository item
-		 * @param {Object} data data of a page fetched from the backend
+		 * Transforms the given data, that was fetched from the backend, into a
+		 * repository item
+		 * @param {object} data data of a page fetched from the backend
 		 * @return {GENTICS.Aloha.Repository.Object} repository item
 		 */
 		Repo.getDocument = function(data, objecttype) {
@@ -235,17 +251,29 @@
 				break;
 			case 'image':
 				restMethod = 'getImages';
-				objName = 'image';
-				docTypeNum = '10009'; // FIXME: Confirm that this is correct for files
+				// objName = 'images';
+				//
+				// This is a temporary fix to accomodate the fact that the
+				// REST-API returns a response for getImages with results in a
+				// "files" object, rather than "images" which is what we would
+				// expect
+				objName = 'files';
+				docTypeNum = '10009'; // FIXME: Confirm that this is the correct number for files
 				break;
 			default:
 				console.warn(
 					'This repository has not method to query for resource type "' + type + '"\n\
-					available resources are page, image, and file'
+					available resources are "page", "image", and "file"'
 				);
 				callback(collection);
 				return;
 			};
+			
+			debug(
+				'Will query REST-API with method:', restMethod,
+				'\nWill look for results in object: ', objName,
+				'\nWill created repo doc with docTypeNum: ', docTypeNum
+			);
 			
 			$.ajax({
 				url		 : restURL('folder/' + restMethod + '/' + folderId),
@@ -305,7 +333,8 @@
 			var that = this,
 				p = query;
 			
-			// If we don't have a session id, get it and invoke this method again
+			// If we don't have a session id, get it and then retry to invoke
+			// this method again
 			if (!sid || sid == '') {
 				var args = arguments;
 				getSid(function () {
@@ -332,7 +361,8 @@
 				
 				// If objectTypeFilter has been specified, then only check for
 				// resources of types found in objectTypeFilter array.
-				// Otherwise collect everthing.
+				// Otherwise try check all types of objects, and collect
+				// everthing we can.
 				var documentTypesToCollection;
 				
 				if (p.objectTypeFilter && p.objectTypeFilter.length) {
@@ -353,19 +383,20 @@
 					documentTypesToCollection = ['page', 'file', 'image'];
 				}
 				
-				// Once all resources have been collected through their
-				// respective methods, we then call processQueryResults, and
-				// pass to it the array of repo documents found, the original
-				// params object, and the original callback expecting to
-				// receive the final processed results
+				// Once all resources have been collected, we then call
+				// processQueryResults, and pass to it the array of all repo
+				// documents that we found, the original params object, and the
+				// original callback expecting to receive the final processed
+				// results
 				var processResults = function (collection) {
+					//debug('Collection to process: ', collection);
 					that.processQueryResults(collection, query, callback);
 				};
 				
 				var collection = [];
 				
-				// Recursively query for objects types specified in
-				// documentTypesToCollection. Pop documentTypesToCollection
+				// Recursively query for object types specified in
+				// documentTypesToCollection. We pop documentTypesToCollection
 				// on each iteration until documentTypesToCollection is empty
 				var collectResults = function (collection) {
 					var type = documentTypesToCollection.pop();
@@ -388,7 +419,7 @@
 		 * doesn't at the moment
 		 */
 		Repo.processQueryResults = function (documents, params, callback) {
-			var skipCount = 0,
+			var skipCount = params.skipCount,
 				l = documents.length,
 				i = 0,
 				num = 0,
@@ -415,45 +446,46 @@
 					if (skipCount) {
 						skipCount--;
 					} else {
+						// If a filter is specified, then filter out all
+						// unrequired properties from each object, and leave
+						// only those specified in the filter array. If no
+						// filter is specified, then we take all properties of
+						// each documents
 						if (hasFilter) {
-							// Filter out all unrequired properties from each
-							// object, and leave only those specified in the
-							// filter array
-							
 							// Copy all fields that returned objects must
 							// contain, according to Repository specification
 							obj = {
 								id		 : elem.id,
 								name	 : elem.name,
-								baseType : 'document',	// TODO: could we use contentGroupId?
-								type	 : 'page'		// FIXME: What if it's an image of file
+								baseType : 'document',
+								type	 : elem.type	//'page' // FIXME: What if it's an image of file
 							};
 							
 							// Copy all requested fields specified in filter
-							// array
 							for (var f = 0; f < params.filter.length; f++) {
 								obj[params.filter[f]] = elem[params.filter[f]];
 							}
 						} else {
-							// If no filter is specified, then return all
-							// properties of each documents
 							obj = elem;
 						}
 						
-						if (!contentSets[elem.contentSetId]) {
-							contentSets[elem.contentSetId] = [];
-							results[num++] = obj;
+						if (elem.contentSetId) {
+							if (!contentSets[elem.contentSetId]) {
+								contentSets[elem.contentSetId] = [];
+							}
+							contentSets[elem.contentSetId].push(elem);
 						}
-						contentSets[elem.contentSetId].push(elem);
+						
+						results[num++] = obj;
 					}
 				} else {
 					// The documents does not match the queryString,
 					// nevertheless we may want to have it as a rendition of
 					// another object, so keep a reference to it
-						if (!contentsetsOfUnreturnedDocs[elem.contentSetId]) {
-							contentsetsOfUnreturnedDocs[elem.contentSetId] = [];
-						}
-						contentsetsOfUnreturnedDocs[elem.contentSetId].push(elem);
+					if (!contentsetsOfUnreturnedDocs[elem.contentSetId]) {
+						contentsetsOfUnreturnedDocs[elem.contentSetId] = [];
+					}
+					contentsetsOfUnreturnedDocs[elem.contentSetId].push(elem);
 				}
 			};
 			
@@ -465,9 +497,9 @@
 							? Array.prototype.concat(contentSet, setOfUnreturnedDocs)
 							: contentSet;
 				
-				// Skip the first one, because this will be the returned
-				// result of which the other documents in the contentSet
-				// are rendition of
+				// Skip the first document, because it will be the returned
+				// result of which the other documents in the contentSet are
+				// renditions of it
 				for (var i = 1,
 						 j = set.length,
 						 members = [],
@@ -479,29 +511,28 @@
 					r = set[i];
 					
 					members.push({
-						id		: r.id,	
-						url		: r.path + r.fileName,
-						filename: r.fileName,
-						kind	: 'translation',
-						language: r.language,
-						mimeType: 'text/html',
-						height	: null,
-						width	: null
+						id		 : r.id,	
+						url		 : r.path + r.fileName,
+						filename : r.fileName,
+						kind	 : 'translation',
+						language : r.language,
+						mimeType : 'text/html',
+						height	 : null,
+						width	 : null
 					});
 				}
 				
 				// The key for this set of renditions is the id of the first
 				// document in the contentSet from which these renditions
-				// belong to
+				// belong
 				renditions[this[0].id] = members;
 			});
 			
 			var orderBy = this.buildSortPairs(params.orderBy);
 			
 			if (orderBy.length) {
-				// Predicate function to sort entries based on order of each
-				// column's importance as defined by order of sortorder-sortby
-				// pairs
+				// Sorts entries based on order of each column's importance as
+				// defined by order of sortorder-sortby pairs
 				results.sort(function (a, b) {
 					var i = 0,
 						j = orderBy.length,
@@ -544,6 +575,8 @@
 				}
 			}
 			
+			debug('RESULTS: ', results);
+			
 			callback.call(this, results);
 		};
 		
@@ -565,10 +598,15 @@
 						matched = renditions[j][check[0]].match(check[1]);
 					}
 					
-					matched
-						&& $.inArray(j, alreadyMatched) == -1
-							&& matches.push(renditions[j])
-								&& alreadyMatched.push(j);
+					// matched
+					// 	&& $.inArray(j, alreadyMatched) == -1
+					// 		&& matches.push(renditions[j])
+					// 			&& alreadyMatched.push(j);
+					
+					if (match && $.inArray(j, alreadyMatched) == -1) {
+						matches.push(renditions[j]);
+						alreadyMatched.push(j);
+					}
 				}
 			}
 			
@@ -590,11 +628,10 @@
 				}
 				
 				$.ajax({
-					url		: restURL('folder/getFolders/' + params.inFolderId + '?recursive=true'),
-					dataType: 'json',
-					type	: 'GET',
-					// TODO: move this to success when working
-					error	: function () {
+					url		 : restURL('folder/getFolders/' + params.inFolderId + '?recursive=true'),
+					dataType : 'json',
+					type	 : 'GET',
+					error	 : function () {
 						callback.call(that, []);
 					},
 					success	: function(data) {
@@ -631,7 +668,8 @@
 		Repo.getObjectById = function (itemId, callback) {
 			var that = this;
 
-			if (itemId.match(/^10007./)) {
+			//if (itemId.match(/^10007./)) {
+			if (itemId.match(/^10007\./)) {
 				itemId = itemId.substr(6);
 			}
 			$.ajax ({
@@ -675,6 +713,7 @@
 		};
 		
 		// Repo Browser not recieving this. Is the problem here?
+		// There seems to be some suppression take place.
 		Repo.triggerError = function (message) {
 			var error = {
 				repository : this,
