@@ -49,6 +49,7 @@
 	function initializeRepository () {
 		
 		var host = 'http://soc-aacc-cms.gentics.com';
+		
 		var isDebugging = (DEBUG === true);
 		
 		function restURL (method) {
@@ -223,7 +224,7 @@
 		/**
 		 * Queries for a resource of a given type against specified parameters.
 		 * If we don't have a method to handle the type of resource requested,
-		 * we invoke the callback with an empty array and log a warning.
+		 * we invoke the callback, passing an empty array, and log a warning.
 		 *
 		 * @param {string}	 type - of resource to query for (page, file, image)
 		 * @param {string}	 id
@@ -272,7 +273,7 @@
 			debug(
 				'Will query REST-API with method:', restMethod,
 				'\nWill look for results in object: ', objName,
-				'\nWill created repo doc with docTypeNum: ', docTypeNum
+				'\nWill create repo doc with docTypeNum: ', docTypeNum
 			);
 			
 			$.ajax({
@@ -333,8 +334,8 @@
 			var that = this,
 				p = query;
 			
-			// If we don't have a session id, get it and then retry to invoke
-			// this method again
+			// If we don't have a session id, get it, and then retry to invoke
+			// this method
 			if (!sid || sid == '') {
 				var args = arguments;
 				getSid(function () {
@@ -363,24 +364,24 @@
 				// resources of types found in objectTypeFilter array.
 				// Otherwise try check all types of objects, and collect
 				// everthing we can.
-				var documentTypesToCollection;
+				var documentTypesToCollect;
 				
 				if (p.objectTypeFilter && p.objectTypeFilter.length) {
-					documentTypesToCollection = [];
+					documentTypesToCollect = [];
 					
 					if($.inArray('website', p.objectTypeFilter) > -1) {
-						documentTypesToCollection.push('page');
+						documentTypesToCollect.push('page');
 					}
 					
 					if($.inArray('files', p.objectTypeFilter) > -1) {
-						documentTypesToCollection.push('file');
+						documentTypesToCollect.push('file');
 					}
 					
 					if($.inArray('images', p.objectTypeFilter) > -1) {
-						documentTypesToCollection.push('image');
+						documentTypesToCollect.push('image');
 					}
 				} else {
-					documentTypesToCollection = ['page', 'file', 'image'];
+					documentTypesToCollect = ['page', 'file', 'image'];
 				}
 				
 				// Once all resources have been collected, we then call
@@ -396,17 +397,17 @@
 				var collection = [];
 				
 				// Recursively query for object types specified in
-				// documentTypesToCollection. We pop documentTypesToCollection
-				// on each iteration until documentTypesToCollection is empty
+				// documentTypesToCollect. We pop documentTypesToCollect on
+				// each iteration until documentTypesToCollect is empty
 				var collectResults = function (collection) {
-					var type = documentTypesToCollection.pop();
+					var type = documentTypesToCollect.pop();
 					
 					that.getResources(
 						type,
 						p.inFolderId,
 						params,
 						collection,
-						documentTypesToCollection.length ? collectResults : processResults
+						documentTypesToCollect.length ? collectResults : processResults
 					);
 				};
 				
@@ -450,7 +451,7 @@
 						// unrequired properties from each object, and leave
 						// only those specified in the filter array. If no
 						// filter is specified, then we take all properties of
-						// each documents
+						// each document
 						if (hasFilter) {
 							// Copy all fields that returned objects must
 							// contain, according to Repository specification
@@ -458,10 +459,14 @@
 								id		 : elem.id,
 								name	 : elem.name,
 								baseType : 'document',
-								type	 : elem.type	//'page' // FIXME: What if it's an image of file
+								// FIXME: elem.type seems to only return "document".
+								// Could it be more specific?
+								type	 : elem.type
 							};
 							
-							// Copy all requested fields specified in filter
+							// Copy all requested fields specified as items in
+							// the filter array from the document into the
+							// object to be returned
 							for (var f = 0; f < params.filter.length; f++) {
 								obj[params.filter[f]] = elem[params.filter[f]];
 							}
@@ -479,9 +484,9 @@
 						results[num++] = obj;
 					}
 				} else {
-					// The documents does not match the queryString,
-					// nevertheless we may want to have it as a rendition of
-					// another object, so keep a reference to it
+					// This document does not match the queryString,
+					// we may, nevertheless, want to have it as a rendition of
+					// another object, so keep a reference to it for later
 					if (!contentsetsOfUnreturnedDocs[elem.contentSetId]) {
 						contentsetsOfUnreturnedDocs[elem.contentSetId] = [];
 					}
@@ -497,7 +502,7 @@
 							? Array.prototype.concat(contentSet, setOfUnreturnedDocs)
 							: contentSet;
 				
-				// Skip the first document, because it will be the returned
+				// We skip the first document because it will be the returned
 				// result of which the other documents in the contentSet are
 				// renditions of it
 				for (var i = 1,
@@ -523,8 +528,7 @@
 				}
 				
 				// The key for this set of renditions is the id of the first
-				// document in the contentSet from which these renditions
-				// belong
+				// document in the contentSet to which these renditions belong
 				renditions[this[0].id] = members;
 			});
 			
@@ -532,7 +536,8 @@
 			
 			if (orderBy.length) {
 				// Sorts entries based on order of each column's importance as
-				// defined by order of sortorder-sortby pairs
+				// defined by order of sortorder-sortby pairs.
+				// This is according to the Repository specification. 
 				results.sort(function (a, b) {
 					var i = 0,
 						j = orderBy.length,
@@ -597,11 +602,6 @@
 					} else {
 						matched = renditions[j][check[0]].match(check[1]);
 					}
-					
-					// matched
-					// 	&& $.inArray(j, alreadyMatched) == -1
-					// 		&& matches.push(renditions[j])
-					// 			&& alreadyMatched.push(j);
 					
 					if (match && $.inArray(j, alreadyMatched) == -1) {
 						matches.push(renditions[j]);
@@ -712,8 +712,7 @@
 			return true;
 		};
 		
-		// Repo Browser not recieving this. Is the problem here?
-		// There seems to be some suppression take place.
+		// Repo Browser not catching this trigger for some reason.
 		Repo.triggerError = function (message) {
 			var error = {
 				repository : this,
