@@ -47,33 +47,33 @@
 	// Local (helper) variables
 	// ------------------------------------------------------------------------
 	
-	var cssNS = 'aloha-browser',
-		uid	  = +(new Date),
+	var ns = 'aloha-browser',
+		uid = +(new Date),
 		// namespaced classnames
 		nsClasses = {
-			tree				: nsClass('tree'),
-			'tree-header'		: nsClass('tree-header'),
-			'grab-handle'		: nsClass('grab-handle'),
-			shadow				: nsClass('shadow'),
-			'rounded-top'		: nsClass('rounded-top'),
-			list				: nsClass('list'),
-			'list-altrow'		: nsClass('list-altrow'),
-			'list-resizable'	: nsClass('list-resizable'),
-			'list-pager'		: nsClass('list-pager'),
-			'list-pager-left'	: nsClass('list-pager-left'),
-			'list-btns'			: nsClass('list-btns'),
-			'search-btn'		: nsClass('search-btn'),
-			'search-field'		: nsClass('search-field'),
-			'search-icon'		: nsClass('search-icon'),
-			'close-btn'			: nsClass('close-btn'),
-			btn					: nsClass('btn'),
-			btns				: nsClass('btns'),
-			grid				: nsClass('grid'),
-			clear				: nsClass('clear'),
-			inner				: nsClass('inner'),
-			'modal-overlay'		: nsClass('modal-overlay'),
-			'modal-window'		: nsClass('modal-window'),
-			'grap-handle'		: nsClass('grap-handle')
+			tree			  : nsClass('tree'),
+			'tree-header'	  : nsClass('tree-header'),
+			'grab-handle'	  : nsClass('grab-handle'),
+			shadow			  : nsClass('shadow'),
+			'rounded-top'	  : nsClass('rounded-top'),
+			list			  : nsClass('list'),
+			'list-altrow'	  : nsClass('list-altrow'),
+			'list-resizable'  : nsClass('list-resizable'),
+			'list-pager'	  : nsClass('list-pager'),
+			'list-pager-left' : nsClass('list-pager-left'),
+			'list-btns'		  : nsClass('list-btns'),
+			'search-btn'	  : nsClass('search-btn'),
+			'search-field'	  : nsClass('search-field'),
+			'search-icon'	  : nsClass('search-icon'),
+			'close-btn'		  : nsClass('close-btn'),
+			btn				  : nsClass('btn'),
+			btns			  : nsClass('btns'),
+			grid			  : nsClass('grid'),
+			clear			  : nsClass('clear'),
+			inner			  : nsClass('inner'),
+			'modal-overlay'	  : nsClass('modal-overlay'),
+			'modal-window'	  : nsClass('modal-window'),
+			'grap-handle'	  : nsClass('grap-handle')
 		};
 	
 	// ------------------------------------------------------------------------
@@ -102,18 +102,16 @@
 	
 	// Creates a selector string with this component's namepsace prefixed the each classname
 	function nsSel () {
-		var str = '',
-			prx = cssNS; // ... for quicker lookup
-		jQuery.each(arguments, function () {str += ' .' + prx + '-' + this;});
-		return str.trim();
+		var strBldr = [], prx = ns;
+		$.each(arguments, function () { strBldr.push('.' + (this == '' ? prx : prx + '-' + this)); });
+		return strBldr.join(' ').trim();
 	};
 	
 	// Creates string with this component's namepsace prefixed the each classname
 	function nsClass () {
-		var str = '',
-			prx = cssNS;
-		jQuery.each(arguments, function () {str += ' ' + prx + '-' + this;});
-		return str.trim();
+		var strBldr = [], prx = ns;
+		$.each(arguments, function () { strBldr.push(this == '' ? prx : prx + '-' + this); });
+		return strBldr.join(' ').trim();
 	};
 	
 	// ------------------------------------------------------------------------
@@ -927,11 +925,10 @@
 			
 			this.grid.find('.loading').hide();
 			this.list.show();
-			
 			this.listItems(data);
 			
 			if (this._pagingOffset <= 0) {
-				btns.first.add(btns.prev).addClass();
+				btns.first.add(btns.prev).addClass(disabled);
 			} else {
 				btns.first.add(btns.prev).removeClass(disabled);
 			}
