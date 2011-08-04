@@ -17,6 +17,8 @@
 			  $ = jQuery, 
 		  Aloha = window.Aloha;
 	
+	// FIXME:
+	// Delegate session handling to GCN Plugin
 	var sid = '';
 	
 	function getSid (callback) {
@@ -48,9 +50,11 @@
 	
 	function initializeRepository () {
 		
-		var host = 'http://soc-aacc-cms.gentics.com';
-		
 		var isDebugging = (DEBUG === true);
+		
+		// FIXME:
+		// Delegate rest calls to GCN Plugin
+		var host = 'http://soc-aacc-cms.gentics.com';
 		
 		function restURL (method) {
 			var delim = method.match(/\?[^\=]+\=/) ? '&' : '?';
@@ -74,11 +78,12 @@
 		/**
 		 * register the plugin with unique name
 		 */
-		 // Aloha.Respository is now Aloha.AbstractRepository
-		var Repo = Aloha.Repositories.GCNRepo = new Aloha.Repository('com.gentics.aloha.GCN.Document');
+		// FIXME:
+		// Aloha.Respository is now Aloha.AbstractRepository
+		var Repo = Aloha.Repositories.GCNRepo = new Aloha.Repository('com.gentics.aloha.GCN.Page');
 		
 		Repo.init = function () {
-			this.repositoryName = 'com.gentics.aloha.GCN.Document';
+			this.repositoryName = 'com.gentics.aloha.GCN.Page';
 		};
 		
 		/**
@@ -211,7 +216,7 @@
 			
 			data.path = path;
 			
-			// TODO make this more efficient (you don't have to make a call for every url)
+			// FIXME
 			//if (data.url && GENTICS.Aloha.GCN.settings.renderBlockContentURL) {
 			//	data.url = GENTICS.Aloha.GCN.renderBlockContent(data.url);
 			//}
@@ -334,6 +339,7 @@
 			var that = this,
 				p = query;
 			
+			// FIXME: The GCN plugins will handle our REST-API session data
 			// If we don't have a session id, get it, and then retry to invoke
 			// this method
 			if (!sid || sid == '') {
@@ -342,12 +348,14 @@
 					that.query.apply(that, args);
 				});
 			} else {
+				// FIXME:
 				// check whether a magiclinkconstruct exists. If not, just do nothing, since setting GCN links is not supported
 				//if (!GENTICS.Aloha.GCN.settings.magiclinkconstruct) {
 				//	callback.call(that);
 				//}
 				
 				var params = {
+				// FIXME:
 				//	links: GENTICS.Aloha.GCN.settings.links
 				};
 				
@@ -484,9 +492,9 @@
 						results[num++] = obj;
 					}
 				} else {
-					// This document does not match the queryString,
-					// we may, nevertheless, want to have it as a rendition of
-					// another object, so keep a reference to it for later
+					// This document does not match the queryString, we may
+					// nevertheless want to have it as a rendition of another
+					// object, so keep a reference to it for later
 					if (!contentsetsOfUnreturnedDocs[elem.contentSetId]) {
 						contentsetsOfUnreturnedDocs[elem.contentSetId] = [];
 					}
@@ -639,17 +647,6 @@
 							var folders = data.folders;
 							for (var i = 0, j = folders.length; i < j; i++) {
 								folders[i] = that.getFolder(data.folders[i]);
-								
-								/*
-									items.push({
-									objectType	 :  'folder',
-									id			 :  folder.id,
-									name	 	 :  folder.name,
-									repositoryId :  that.repositoryId,
-									url			 :  folder.publishDir,
-									hasMoreItems : (folder.subfolders && folder.subfolders.length > 0)
-								});
-								*/
 							}
 						}
 						
@@ -712,7 +709,8 @@
 			return true;
 		};
 		
-		// Repo Browser not catching this trigger for some reason.
+		// FIXME:
+		// Mini Browser not catching this trigger for some reason.
 		Repo.triggerError = function (message) {
 			var error = {
 				repository : this,
@@ -724,6 +722,9 @@
 		
 	};
 	
+	// FIXME:
+	// This is obsolete with RequireJS.
+	// Use require function instead.
 	$(function () {
 		$('body')
 			.bind('aloha', initializeRepository)
@@ -731,4 +732,3 @@
 	});
 	
 })(window);
-
