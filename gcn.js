@@ -136,7 +136,10 @@
 				type,
 				subtype,
 			    checks = [],
-				i = filters.length;
+				i = filters.length,
+				// We can cache this rgxp so that we do not have recreate it on
+				// each iteration
+				rgxpKind = /([a-z0-9]+)\/([a-z0-9\*]+)/i;
 			
 			while (i--) {
 				f = filters[i];
@@ -154,7 +157,7 @@
 					
 					// check against kind
 					checks.push(['kind', pattern]);
-				} else if (f.match(/([a-z0-9]+)\/([a-z0-9\*]+)/i)) {
+				} else if (f.match(rgxpKind)) {
 					type = RegExp. $1;
 					subtype = RegExp.$2;
 					
