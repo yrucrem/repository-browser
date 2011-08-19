@@ -102,7 +102,7 @@
 				order,
 				newOrder = [];
 			
-			while (i--) {
+			while (--i >= 0) {
 				sort = orderBy[i];
 				for (field in sort) {
 					order = sort[field];
@@ -141,7 +141,7 @@
 				// each iteration
 				rgxpKind = /([a-z0-9]+)\/([a-z0-9\*]+)/i;
 			
-			while (i--) {
+			while (--i >= 0) {
 				f = filters[i];
 				
 				if (f == '*') {
@@ -303,7 +303,7 @@
 						
 						var objs = data[objName];
 						
-						for (var i = 0, j = objs.length; i < j; i++) {
+						for (var i = 0, j = objs.length; i < j; ++i) {
 							objs[i] = that.getDocument(objs[i], docTypeNum);
 							collection.push(objs[i]);
 						}
@@ -451,12 +451,12 @@
 			var contentSets = {};
 			var contentsetsOfUnreturnedDocs = {};
 			
-			for (; i < l; i++) {
+			for (; i < l; ++i) {
 				elem = documents[i];
 				
 				if (!hasQueryString || (elem.name && elem.name.match(rgxp)) || (elem.path && elem.path.match(rgxp))) {
 					if (skipCount) {
-						skipCount--;
+						--skipCount;
 					} else {
 						// If a filter is specified, then filter out all
 						// unrequired properties from each object, and leave
@@ -478,7 +478,7 @@
 							// Copy all requested fields specified as items in
 							// the filter array from the document into the
 							// object to be returned
-							for (var f = 0; f < params.filter.length; f++) {
+							for (var f = 0; f < params.filter.length; ++f) {
 								obj[params.filter[f]] = elem[params.filter[f]];
 							}
 						} else {
@@ -523,7 +523,7 @@
 						 
 						 i < j;
 						 
-						 i++) {
+						 ++i) {
 					r = set[i];
 					
 					members.push({
@@ -554,7 +554,7 @@
 						j = orderBy.length,
 						sort;
 					
-					for (; i < j; i++) {
+					for (; i < j; ++i) {
 						sort = orderBy[i];
 						
 						if (a[sort.by] == b[sort.by]) {
@@ -577,11 +577,13 @@
 				results = results.slice(0, params.maxItems);
 			}
 			
+			//debugger;
+			
 			if (hasRenditionFilter && (i = results.length) && renditions) {
 				var renditionChecks = this.buildRenditionFilterChecks(params.renditionFilter),
 					r;
 				
-				while (i--) {
+				while (--i >= 0) {
 					if (r = renditions[results[i].id]) {
 						results[i].renditions =
 							this.getRenditions(r, renditionChecks);
@@ -593,6 +595,8 @@
 			
 			debug('RESULTS: ', results);
 			
+			//debugger;
+			
 			callback.call(this, results);
 		};
 		
@@ -602,8 +606,8 @@
 			    check,
 				matched = false;
 			
-			for (var j = renditions.length - 1; j >= 0; j--) {
-				for (var k = renditionChecks.length - 1; k >= 0; k--) {
+			for (var j = renditions.length - 1; j >= 0; --j) {
+				for (var k = renditionChecks.length - 1; k >= 0; --k) {
 					check = renditionChecks[k];
 					
 					if (check == '*') {
@@ -614,7 +618,7 @@
 						matched = renditions[j][check[0]].match(check[1]);
 					}
 					
-					if (match && $.inArray(j, alreadyMatched) == -1) {
+					if (matched && $.inArray(j, alreadyMatched) == -1) {
 						matches.push(renditions[j]);
 						alreadyMatched.push(j);
 					}
@@ -648,7 +652,7 @@
 					success	: function(data) {
 						if (that.handleRestResponse(data)) {
 							var folders = data.folders;
-							for (var i = 0, j = folders.length; i < j; i++) {
+							for (var i = 0, j = folders.length; i < j; ++i) {
 								folders[i] = that.getFolder(data.folders[i]);
 							}
 						}
@@ -695,7 +699,7 @@
 					msgs = response.messages;
 				
 				if (msgs && (l = msgs.length)) {
-					while (l--) {
+					while (--l >= 0) {
 						msgs[l].message && msg.push(msgs[l].message);
 					}
 					
