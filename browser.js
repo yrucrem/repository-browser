@@ -22,13 +22,14 @@
 	
 	'use strict';
 	
-	var GENTICS = window.GENTICS || (window.GENTICS = {}),
-		 jQuery = window.alohaQuery || window.jQuery,
-			  $ = jQuery,
-		  Aloha = window.Aloha || GENTICS.Aloha; // GENTICS.Aloha is for legacy
+	var
+	    GENTICS = window.GENTICS || (window.GENTICS = {}),
+	     jQuery = window.alohaQuery || window.jQuery,
+	          $ = jQuery,
+	      Aloha = window.Aloha || GENTICS.Aloha; // GENTICS.Aloha is for legacy
 	
 	// If jQuery cannot be found then die violently!
-	if (typeof jQuery != 'function') {
+	if (typeof $ != 'function') {
 		throw 'jQuery cannot be found.';
 		return;
 	}
@@ -51,29 +52,29 @@
 		uid = +(new Date),
 		// namespaced classnames
 		nsClasses = {
-			tree			  : nsClass('tree'),
-			'tree-header'	  : nsClass('tree-header'),
-			'grab-handle'	  : nsClass('grab-handle'),
-			shadow			  : nsClass('shadow'),
-			'rounded-top'	  : nsClass('rounded-top'),
-			list			  : nsClass('list'),
-			'list-altrow'	  : nsClass('list-altrow'),
+			tree              : nsClass('tree'),
+			'tree-header'     : nsClass('tree-header'),
+			'grab-handle'     : nsClass('grab-handle'),
+			shadow            : nsClass('shadow'),
+			'rounded-top'     : nsClass('rounded-top'),
+			list              : nsClass('list'),
+			'list-altrow'     : nsClass('list-altrow'),
 			'list-resizable'  : nsClass('list-resizable'),
-			'list-pager'	  : nsClass('list-pager'),
+			'list-pager'      : nsClass('list-pager'),
 			'list-pager-left' : nsClass('list-pager-left'),
-			'list-btns'		  : nsClass('list-btns'),
-			'search-btn'	  : nsClass('search-btn'),
-			'search-field'	  : nsClass('search-field'),
-			'search-icon'	  : nsClass('search-icon'),
-			'close-btn'		  : nsClass('close-btn'),
-			btn				  : nsClass('btn'),
-			btns			  : nsClass('btns'),
-			grid			  : nsClass('grid'),
-			clear			  : nsClass('clear'),
-			inner			  : nsClass('inner'),
-			'modal-overlay'	  : nsClass('modal-overlay'),
-			'modal-window'	  : nsClass('modal-window'),
-			'grap-handle'	  : nsClass('grap-handle')
+			'list-btns'       : nsClass('list-btns'),
+			'search-btn'      : nsClass('search-btn'),
+			'search-field'    : nsClass('search-field'),
+			'search-icon'     : nsClass('search-icon'),
+			'close-btn'       : nsClass('close-btn'),
+			btn               : nsClass('btn'),
+			btns              : nsClass('btns'),
+			grid              : nsClass('grid'),
+			clear             : nsClass('clear'),
+			inner             : nsClass('inner'),
+			'modal-overlay'   : nsClass('modal-overlay'),
+			'modal-window'    : nsClass('modal-window'),
+			'grap-handle'     : nsClass('grap-handle')
 		};
 	
 	// ------------------------------------------------------------------------
@@ -114,10 +115,14 @@
 		return strBldr.join(' ').trim();
 	};
 	
-	// ------------------------------------------------------------------------
-	// Browser constructor
-	// Only instance properties are to be defined here
-	// ------------------------------------------------------------------------
+	/**
+	 * Browser constructor
+	 *
+	 * TODO: Make this a singleton
+	 *
+	 * @param {Object} opts - Implementor defined options to extend and
+	 *						  override defualts
+	 */
 	var Browser = function (opts) {
 		// Force the Browser function to be invoked with the "new" operator
 		if (typeof this.instanceOf != 'string') {
@@ -127,7 +132,7 @@
 		var that = this;
 		
 		// Defaults
-		var options = jQuery.extend({
+		var options = $.extend({
 			// Set to true for development and debugging
 			verbose: false,
 			// The repository manager which this browser will interface with
@@ -145,10 +150,10 @@
 			listWidth: 'auto',
 			pageSize: 10,
 			columns: {
-				icon:	 {title: '',		width: 30,  sortable: false, resizable: false},
-				name:	 {title: 'Name',	width: 250, sorttype: 'text'},
-				url:	 {title: 'URL',		width: 250, sorttype: 'text'},
-				preview: {title: 'Preview',	width: 200, sorttype: 'text'}
+				icon:    {title: '',        width: 30,  sortable: false, resizable: false},
+				name:    {title: 'Name',    width: 250, sorttype: 'text'},
+				url:     {title: 'URL',     width: 250, sorttype: 'text'},
+				preview: {title: 'Preview', width: 200, sorttype: 'text'}
 			}
 		}, opts || {});
 		
@@ -171,29 +176,29 @@
 		//---------------------------------------------------------------------
 		this._pagingOffset = 0;
 		// Total number of objects in a given folder. We don't use null because
-		// isNaN(null) == false !
+		// isNaN(null) == false ! *sigh*
 		this._pagingCount = undefined;
 		this._pagingBtns = {
 			first : null,
-			end	  : null,
+			end   : null,
 			next  : null,
 			prev  : null
 		};
 		
-		// TODO: Consider deprecating this
 		// Register user defined implement methods and callbacks, and remove
 		// them from the options object
+		// TODO: Consider deprecating this altogether
 		if (typeof options.implement === 'object') {
-			jQuery.each(options.implement, function (k, v) {
+			$.each(options.implement, function (k, v) {
 				that[k] = v;
 			});
 			
 			delete options.implement;
 		}
 		
-		// TODO: Consider deprecating this
+		// TODO: Consider deprecating this too
 		if (typeof options.callbacks === 'object') {
-			jQuery.each(options.callbacks, function () {
+			$.each(options.callbacks, function () {
 				that.callback(this[0], this[1]);
 			});
 			
@@ -201,7 +206,7 @@
 		}
 		
 		// Insert the remaining options as properties of this object
-		jQuery.extend(this, options);
+		$.extend(this, options);
 		
 		this.init.apply(this, arguments);
 	};
@@ -210,7 +215,7 @@
 	 * Extend methods and properties that are to be shared across multiple
 	 * instances of Browser are into the prototype object
 	 */
-	jQuery.extend(Browser.prototype, {
+	$.extend(Browser.prototype, {
 		
 		instanceOf: 'Aloha.Browser',
 		
@@ -222,8 +227,8 @@
 		/**
 		 * Called by Browser constructor function
 		 *
-		 * @param Mixed selector - jQuery selector. May be String, DOMObject,
-		 *						   or jQuery itself
+		 * @param {Mixed} selector - jQuery selector. May be String, DOMObject,
+		 *						     or jQuery itself
 		 */
 		init: function () {
 			var that = this,
@@ -241,14 +246,14 @@
 			this.list = this.createList(this.grid.find('.ui-layout-center'));
 			
 			this.grid.layout({
-				west__size	  : tree_width - 1,
+				west__size    : tree_width - 1,
 				west__minSize : tree_width - give,
 				west__maxSize : tree_width + give,
 				center__size  : this.listWidth,
-				paneClass	  : 'ui-layout-pane',
+				paneClass     : 'ui-layout-pane',
 				resizerClass  : 'ui-layout-resizer',
 				togglerClass  : 'ui-layout-toggler',
-				onresize	  : function (name, element) {
+				onresize      : function (name, element) {
 					if (name == 'center') {
 						that.list.setGridWidth(element.width());
 					}
@@ -261,7 +266,7 @@
 			this.preventSelection();
 			
 			// Not working
-			jQuery('body').bind('aloha-repository-error', function (error) {
+			$('body').bind('aloha-repository-error', function (error) {
 				console.warn(
 					'Error occured on request to repository: ', error.repository.repositoryId +
 					'\nMessage: "' + error.message + '"'
@@ -284,7 +289,7 @@
 		
 		preloadImages: function () {
 			var that = this;
-			jQuery.each([
+			$.each([
 				'arrow-000-medium.png',
 				'arrow-180.png',
 				'arrow-315-medium.png',
@@ -415,7 +420,7 @@
 			var that = this,
 				data = [];
 			
-			jQuery.each(items, function () {
+			$.each(items, function () {
 				data.push(that.harvestRepoObject(this));
 			});
 			
@@ -434,7 +439,7 @@
 		harvestRepoObject: function (obj) {
 			uid++;
 			
-			var repo_obj = this._objs[uid] = jQuery.extend(obj, {
+			var repo_obj = this._objs[uid] = $.extend(obj, {
 				uid: uid,
 				loaded: false
 			});
@@ -486,7 +491,7 @@
 		renderRowCols: function (item) {
 			var row = {};
 			
-			jQuery.each(this.columns, function (colName, v) {
+			$.each(this.columns, function (colName, v) {
 				switch (colName) {
 				case 'icon':
 					row.icon = '<div class="aloha-browser-icon aloha-browser-icon-' + item.type + '"></div>';
@@ -543,7 +548,7 @@
 		},
 		
 		rowClicked: function (event) {
-			var row = jQuery(event.target).parent('tr'),
+			var row = $(event.target).parent('tr'),
 				item = null,
 				uid;
 			
@@ -559,8 +564,8 @@
 		
 		createTree: function (container) {
 			var that = this,
-				tree = jQuery(renderTemplate('<div class="{tree}">')),
-				header =  jQuery(renderTemplate(
+				tree = $(renderTemplate('<div class="{tree}">')),
+				header = $(renderTemplate(
 					'<div class="{tree-header} {grab-handle}">\
 						Repository Browser\
 					</div>'
@@ -619,7 +624,7 @@
 		},
 		
 		createGrid: function (container) {
-			var grid = jQuery(renderTemplate(
+			var grid = $(renderTemplate(
 				'<div class="{grid} {shadow} {rounded-top}"> \
 					<div class="ui-layout-west"></div>		 \
 					<div class="ui-layout-center"></div>	 \
@@ -633,7 +638,7 @@
 		
 		createList: function (container) {
 			var that = this,
-				list = jQuery(renderTemplate(
+				list = $(renderTemplate(
 						'<table id="jqgrid_needs_something_anything_here"\
 							class="{list}"></table>'
 					)),
@@ -645,7 +650,7 @@
 					hidden	 : true
 				}];
 			
-			jQuery.each(this.columns, function (k, v) {
+			$.each(this.columns, function (k, v) {
 				colNames.push(v.title);
 				colModel.push({
 					name	  : k,
@@ -658,7 +663,7 @@
 			
 			container.append(
 				list,
-				jQuery(renderTemplate('<div id="{list-pager}">'))
+				$(renderTemplate('<div id="{list-pager}">'))
 			);
 			
 			list.jqGrid({
@@ -704,10 +709,10 @@
 			container.find('.ui-pg-button').unbind().find('>span.ui-icon').each(function () {
 				var dir = this.className.match(/ui\-icon\-seek\-([a-z]+)/)[1];
 				
-				that._pagingBtns[dir] = jQuery(this).parent()
+				that._pagingBtns[dir] = $(this).parent()
 					.addClass('ui-state-disabled')
 					.click(function () {
-						if (!jQuery(this).hasClass('ui-state-disabled')) {
+						if (!$(this).hasClass('ui-state-disabled')) {
 							that.doPaging(dir);
 						}
 					});
@@ -725,7 +730,7 @@
 			// Override jqGrid sorting
 			var listProps = list[0].p;
 			container.find('.ui-jqgrid-view tr:first th div').each(function(i) {
-				jQuery(this).unbind().click(function (event) {
+				$(this).unbind().click(function (event) {
 					event.stopPropagation();
 					that.sortList(listProps.colModel[i], this);
 				});
@@ -738,7 +743,7 @@
 			var that = this,
 				search,
 				bar = container.find('.ui-jqgrid-titlebar'),
-				btns = jQuery(renderTemplate(
+				btns = $(renderTemplate(
 					'<div class="{btns}">							 \
 						<input type="text" class="{search-field}" /> \
 						<span class="{btn} {search-btn}">			 \
@@ -762,9 +767,9 @@
 				that.close();
 			});
 			bar.find(nsSel('btn')).mousedown(function () {
-				jQuery(this).addClass(nsClass('pressed'));
+				$(this).addClass(nsClass('pressed'));
 			}).mouseup(function () {
-				jQuery(this).removeClass(nsClass('pressed'));
+				$(this).removeClass(nsClass('pressed'));
 			});
 		},
 		
@@ -783,11 +788,11 @@
 		 */
 		sortList: function(colModel, el){
 			// reset sort properties in all column headers
-			jQuery('span.ui-grid-ico-sort').addClass('ui-state-disabled');
+			$('span.ui-grid-ico-sort').addClass('ui-state-disabled');
 			
 			colModel.sortorder = (colModel.sortorder == 'asc') ? 'desc' : 'asc';
 			
-			jQuery(el)
+			$(el)
 				.find('span.s-ico').show()
 					.find('.ui-icon-' + colModel.sortorder)
 						.removeClass('ui-state-disabled');
@@ -910,11 +915,11 @@
 				list = this.list.clearGridData(),
 				obj;
 			
-			jQuery.each(items, function () {
+			$.each(items, function () {
 				obj = this.resource;
 				list.addRowData(
 					obj.uid,
-					jQuery.extend({id: obj.id}, that.renderRowCols(obj))
+					$.extend({id: obj.id}, that.renderRowCols(obj))
 				);
 			});
 		},
@@ -956,16 +961,16 @@
 		createOverlay: function () {
 			var that = this;
 			
-			jQuery('body').append(renderTemplate(
+			$('body').append(renderTemplate(
 				'<div class="{modal-overlay}" style="top: -99999px; z-index: 99999;"></div>' +
 				'<div class="{modal-window}"  style="top: -99999px; z-index: 99999;"></div>'
 			));
 			
-			jQuery(nsSel('modal-overlay')).click(function () {
+			$(nsSel('modal-overlay')).click(function () {
 				that.close();
 			});
 			
-			return jQuery(nsSel('modal-window'));
+			return $(nsSel('modal-window'));
 		},
 		
 		setObjectTypeFilter: function (otf) {
@@ -981,13 +986,13 @@
 			
 			var el = this.element;
 			
-			jQuery(nsSel('modal-overlay'))
+			$(nsSel('modal-overlay'))
 				.css({top: 0, left: 0})
 				.add(el).stop().show();
 			
 			var	w = el.width(),
 				h = el.height(),
-				win	= jQuery(window);
+				win	= $(window);
 			
 			el.css({
 				left : (win.width() - w) / 2,
@@ -1009,8 +1014,8 @@
 		close: function () {
 			this.element.fadeOut(
 				250, function () {
-					jQuery(this).css('top', 0).hide();
-					jQuery(nsSel('modal-overlay')).hide();
+					$(this).css('top', 0).hide();
+					$(nsSel('modal-overlay')).hide();
 				}
 			);
 		},
@@ -1035,14 +1040,14 @@
 		
 	});
 	
-	jQuery(function () {
-		jQuery('body').bind('aloha', function () {
+	$(function () {
+		$('body').bind('aloha', function () {
 			// Broadcast that this Browser is ready for use
-			jQuery('body').trigger(nsClass('ready'), this);
+			$('body').trigger(nsClass('ready'), this);
 			Aloha.Browser = Browser;
 		});
 		
-		jQuery('bind').bind('aloha-browser-ready', function () {
+		$('bind').bind('aloha-browser-ready', function () {
 			//alert(9);
 		});
 	});
