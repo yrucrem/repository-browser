@@ -449,12 +449,19 @@
 			}
 			
 			var contentSets = {};
-			var contentsetsOfUnreturnedDocs = {};
+			var contentsetDocs = {};
 			
 			for (; i < l; ++i) {
 				elem = documents[i];
 				
-				if (!hasQueryString || (elem.name && elem.name.match(rgxp)) || (elem.path && elem.path.match(rgxp))) {
+				// If there is a contentSet that matches the contentSetId of
+				// the incoming document, then we will treat it like a
+				// rendition and not like a seperate page of it's own
+				if (!contentSets[elem.contentSetId] && (
+						!hasQueryString ||
+						(elem.name && elem.name.match(rgxp)) ||
+						(elem.path && elem.path.match(rgxp))
+					)) {
 					if (skipCount) {
 						--skipCount;
 					} else {
@@ -498,17 +505,17 @@
 					// This document does not match the queryString, we may
 					// nevertheless want to have it as a rendition of another
 					// object, so keep a reference to it for later
-					if (!contentsetsOfUnreturnedDocs[elem.contentSetId]) {
-						contentsetsOfUnreturnedDocs[elem.contentSetId] = [];
+					if (!contentsetDocs[elem.contentSetId]) {
+						contentsetDocs[elem.contentSetId] = [];
 					}
-					contentsetsOfUnreturnedDocs[elem.contentSetId].push(elem);
+					contentsetDocs[elem.contentSetId].push(elem);
 				}
 			};
 			
 			// Build renditions from contentSet hash
 			var renditions = {};
 			$.each(contentSets, function (key, contentSet) {
-				var setOfUnreturnedDocs = contentsetsOfUnreturnedDocs[key];
+				var setOfUnreturnedDocs = contentsetDocs[key];
 				var set = setOfUnreturnedDocs
 							? Array.prototype.concat(contentSet, setOfUnreturnedDocs)
 							: contentSet;
@@ -545,20 +552,20 @@
 			
 			var orderBy = this.buildSortPairs(params.orderBy);
 			
-			if (orderBy.length) {
+			if (orderBy.length > 0) {
 				// Sorts entries based on order of each column's importance as
 				// defined by order of sortorder-sortby pairs.
-				// This is according to the Repository specification. 
+				// This is according to the Repository specification.
 				results.sort(function (a, b) {
 					var i = 0,
-						j = orderBy.length,
+						j = orderBy.length - 1,
 						sort;
 					
-					for (; i < j; ++i) {
+					for (; i <= j; ++i) {
 						sort = orderBy[i];
 						
 						if (a[sort.by] == b[sort.by]) {
-							if (i == j - 1) {
+							if (i == j) {
 								return 0;
 							}
 						} else {
@@ -577,8 +584,6 @@
 				results = results.slice(0, params.maxItems);
 			}
 			
-			//debugger;
-			
 			if (hasRenditionFilter && (i = results.length) && renditions) {
 				var renditionChecks = this.buildRenditionFilterChecks(params.renditionFilter),
 					r;
@@ -594,8 +599,6 @@
 			}
 			
 			debug('RESULTS: ', results);
-			
-			//debugger;
 			
 			callback.call(this, results);
 		};
