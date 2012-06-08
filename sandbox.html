@@ -18,12 +18,18 @@
 		};
 	</script>
 	<script src="shared/module-paths.js"></script>
-	<script src="module-paths.js"></script>
 	<script src="shared/require.js"></script>
 	<script>
 		var paths = MODULE_PATHS;
 		paths['RepositoryBrowser'] = 'lib/repository-browser';
 		paths['DemoBrowser'] = 'demo-browser';
+		paths['jquery-layout'] = root + '/vendor/jquery.layout';
+		paths['jstree'] = root + '/vendor/jquery.jstree';
+		paths['jqgrid'] = root + '/vendor/jquery.jqgrid';
+		paths['jqgrid-locale-en'] = root + '/vendor/grid.locale.en';
+		paths['jqgrid-locale-de'] = root + '/vendor/grid.locale.de';
+		paths['repository-browser-i18n-en'] = root + '/nls/en/i18n';
+		paths['repository-browser-i18n-de'] = root + '/nls/de/i18n';
 		require.config({paths: paths});
 	</script>
 
