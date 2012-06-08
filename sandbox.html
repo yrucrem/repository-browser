@@ -1,0 +1,62 @@
+<!doctype html>
+<head>
+	<meta charset="UTF-8">
+
+	<title>Repository Browser</title>
+
+	<!-- script src="../../lib/aloha.js"
+	        data-aloha-plugins="common/format,
+	                            common/highlighteditables,
+	                            common/link"></script -->
+
+	<link rel="stylesheet" type="text/css" href="css/browser.css" />
+
+	<script src="shared/require.js"></script>
+	<script src="shared/shared-module-paths.js"></script>
+	<script>
+		var paths = SHARED_MODULE_PATHS;
+
+		// Add or overwrite modules.
+		paths['RepositoryBrowser'] = 'lib/repository-browser';
+		paths['DemoBrowser'] = 'demo-browser';
+
+		require.config({
+			paths: paths
+		});
+	</script>
+
+	<script>
+		require(['DemoBrowser'], function (DemoBrowser) {
+			var browser1 = window.browser1 = new DemoBrowser({
+				repositoryManager: null, // Aloha.RepositoryManager
+				repositoryFilter: null,
+				objectTypeFilter: null,
+				renditionFilter: ['*'],
+				rootPath: './'
+			});
+
+			var browser2 = window.browser2 = new DemoBrowser({
+				maxWidth: 700,
+				reyositoryManager: null, // Aloha.RepositoryManager
+				repositoryFilter: null,
+				objectTypeFilter: null,
+				renditionFilter: ['*'],
+				rootPath: './',
+				columns: {
+					col1: {title: 'Col 1', width: 200},
+					col2: {title: 'Col 2', width: 200}
+				}
+			});
+
+			browser1.show();
+			browser2.show();
+		});
+	</script>
+	<style>
+		body {
+			background: whiteSmoke;
+		}
+	</style>
+</head>
+<body></body>
+</html>
