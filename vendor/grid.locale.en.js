@@ -1,3 +1,6 @@
+define('jqgrid-locale-en', ['jquery'], function (jQuery) {
+var $ = jQuery;
+
 ;(function($){
 /**
  * jqGrid English Translation
@@ -126,3 +129,5 @@ $.jgrid = {
 	}
 };
 })(jQuery);
+
+}); // define()

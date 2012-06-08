@@ -12,17 +12,17 @@
 	<link rel="stylesheet" type="text/css" href="css/browser.css" />
 
 	<script src="shared/require.js"></script>
-	<script src="shared/shared-module-paths.js"></script>
+	<script src="shared/module-paths.js"></script>
+	<script src="module-paths.js"></script>
 	<script>
-		var paths = SHARED_MODULE_PATHS;
-
-		// Add or overwrite modules.
+		var paths = MODULE_PATHS;
 		paths['RepositoryBrowser'] = 'lib/repository-browser';
 		paths['DemoBrowser'] = 'demo-browser';
+		require.config({paths: paths});
 
-		require.config({
-			paths: paths
-		});
+		var SETTINGS = {
+			lang: 'en'
+		};
 	</script>
 
 	<script>
