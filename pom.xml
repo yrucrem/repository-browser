@@ -9,7 +9,8 @@
 
 	<name>Gentics Repository Browser</name>
 	<packaging>pom</packaging>
-	<description>This is the gentics repository browser.</description>
+	<description>This is the gentics repository browser.  It communicates with
+	the Repository Manager interface.</description>
 
 	<url>http://www.gentics.com</url>
 
@@ -18,6 +19,16 @@
 		<maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
 		<phantomjs.bin>/opt/phantomjs/bin/phantomjs</phantomjs.bin>
 	</properties>
+
+	<dependencies>
+		<dependency>
+			<artifactId>common-js-libs</artifactId>
+			<groupId>com.gentics</groupId>
+			<version>0.1-SNAPSHOT</version>
+			<type>zip</type>
+			<!-- classifier>debug</classifier -->
+		</dependency>
+	</dependencies>
 
 	<build>
 		<resources>
@@ -109,10 +120,11 @@
 						<configuration>
 							<excludes>
 								<exclude>vendor/**</exclude>
+								<exclude>shared/**</exclude>
 							</excludes>
 							<disallowInsecureCharsInRegExp>false</disallowInsecureCharsInRegExp>
 							<allowOneVarStatementPerFunction>false</allowOneVarStatementPerFunction>
-							<predefinedVars>window, global, process, require, jQuery, GCN</predefinedVars>
+							<predefinedVars>window, global, process, define, require, jQuery, GCN</predefinedVars>
 							<assumeABrowser>true</assumeABrowser>
 							<tolerateContinuation>true</tolerateContinuation>
 						</configuration>

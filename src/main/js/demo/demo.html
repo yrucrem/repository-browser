@@ -2,7 +2,7 @@
 <head>
 	<meta charset="UTF-8">
 
-	<title>Repository Browser</title>
+	<title>Repository Browser Demo</title>
 
 	<!-- script src="../../lib/aloha.js"
 	        data-aloha-plugins="common/format,
@@ -14,22 +14,15 @@
 	<script>
 		var SETTINGS = {
 			lang: 'en',
-			root: './'
+			root: '../'
 		};
 	</script>
-	<script src="shared/module-paths.js"></script>
-	<script src="shared/require.js"></script>
+	<script src="../shared/module-paths.js"></script>
+	<script src="../shared/require.js"></script>
 	<script>
 		var paths = MODULE_PATHS;
-		paths['RepositoryBrowser'] = 'lib/repository-browser';
-		paths['DemoBrowser'] = 'demo-browser';
-		paths['jquery-layout'] = root + '/vendor/jquery.layout';
-		paths['jstree'] = root + '/vendor/jquery.jstree';
-		paths['jqgrid'] = root + '/vendor/jquery.jqgrid';
-		paths['jqgrid-locale-en'] = root + '/vendor/grid.locale.en';
-		paths['jqgrid-locale-de'] = root + '/vendor/grid.locale.de';
-		paths['repository-browser-i18n-en'] = root + '/nls/en/i18n';
-		paths['repository-browser-i18n-de'] = root + '/nls/de/i18n';
+		paths['RepositoryBrowser'] = root + 'lib/repository-browser';
+		paths['DemoBrowser'] = 'demo.js';
 		require.config({paths: paths});
 	</script>
 
