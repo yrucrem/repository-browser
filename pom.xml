@@ -45,6 +45,21 @@
 
 		<plugins>
 			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>${project.basedir}/src/main/js/shared</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.2.1</version>
 				<executions>
@@ -129,7 +144,6 @@
 					<!-- <wroManagerFactory>ro.isdc.wro.extensions.manager.standalone.YUIStandaloneManagerFactory</wroManagerFactory> -->
 				</configuration>
 			</plugin>
-
 			<!-- plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>jslint-maven-plugin</artifactId>
