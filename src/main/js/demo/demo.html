@@ -9,7 +9,7 @@
 	                            common/highlighteditables,
 	                            common/link"></script -->
 
-	<link rel="stylesheet" type="text/css" href="css/browser.css" />
+	<link rel="stylesheet" type="text/css" href="../css/browser.css" />
 
 	<script>
 		var SETTINGS = {
@@ -18,11 +18,17 @@
 		};
 	</script>
 	<script src="../shared/module-paths.js"></script>
-	<script src="../shared/require.js"></script>
+	<script src="../shared/vendor/require.js"></script>
 	<script>
 		var paths = MODULE_PATHS;
-		paths['RepositoryBrowser'] = root + 'lib/repository-browser';
-		paths['DemoBrowser'] = 'demo.js';
+		paths['jquery-layout'] = SETTINGS.root + '/vendor/jquery.layout';
+		paths['jstree'] = SETTINGS.root + '/vendor/jquery.jstree';
+		paths['jqgrid'] = SETTINGS.root + '/vendor/jquery.jqgrid';
+		paths['jqgrid-locale-en'] = SETTINGS.root + '/vendor/grid.locale.en';
+		paths['jqgrid-locale-de'] = SETTINGS.root + '/vendor/grid.locale.de';
+		paths['RepositoryBrowser'] = SETTINGS.root + '/lib/repository-browser';
+		paths['DemoBrowser'] = 'demo-browser';
+		paths['repository-browser-i18n-en'] = SETTINGS.root + '/nls/en/i18n';
 		require.config({paths: paths});
 	</script>
 
@@ -33,7 +39,7 @@
 				repositoryFilter: null,
 				objectTypeFilter: null,
 				renditionFilter: ['*'],
-				rootPath: './'
+				rootPath: SETTINGS.root 
 			});
 
 			var browser2 = window.browser2 = new DemoBrowser({
@@ -42,7 +48,7 @@
 				repositoryFilter: null,
 				objectTypeFilter: null,
 				renditionFilter: ['*'],
-				rootPath: './',
+				rootPath: SETTINGS.root,
 				columns: {
 					col1: {title: 'Col 1', width: 200},
 					col2: {title: 'Col 2', width: 200}
