@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>repository-browser</artifactId>
+	<groupId>com.gentics</groupId>
+	<version>0.1-SNAPSHOT</version>
+
+	<name>Gentics Repository Browser</name>
+	<packaging>pom</packaging>
+	<description>This is the gentics repository browser.</description>
+
+	<url>http://www.gentics.com</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
+		<phantomjs.bin>/opt/phantomjs/bin/phantomjs</phantomjs.bin>
+	</properties>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/js</directory>
+				<filtering>false</filtering>
+			</resource>
+		</resources>
+
+		<testResources>
+			<testResource>
+				<directory>src/test/js</directory>
+			</testResource>
+		</testResources>
+
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>dist</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<attach>true</attach>
+							<appendAssemblyId>false</appendAssemblyId>
+							<descriptors>
+								<descriptor>${project.basedir}/src/main/assembly/package.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>ro.isdc.wro4j</groupId>
+				<artifactId>wro4j-maven-plugin</artifactId>
+				<version>1.4.1</version>
+				<executions>
+					<execution>
+						<id>minify</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<minimize>true</minimize>
+							<destinationFolder>${project.build.directory}/bin/</destinationFolder>
+							<jsDestinationFolder>${project.build.directory}/bin/</jsDestinationFolder>
+						</configuration>
+					</execution>
+					<execution>
+						<id>debug</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<minimize>false</minimize>
+							<destinationFolder>${project.build.directory}/debug/</destinationFolder>
+							<jsDestinationFolder>${project.build.directory}/debug/</jsDestinationFolder>
+						</configuration>
+					</execution>
+				</executions>
+				<configuration>
+					<targetGroups>repository-browser</targetGroups>
+					<jsDestinationFolder>${project.build.directory}/static/js/</jsDestinationFolder>
+					<contextFolder>${basedir}/src/main/js/</contextFolder>
+					<buildDirectory>${basedir}</buildDirectory>
+					<ignoreMissingResources>false</ignoreMissingResources>
+					<wroFile>${basedir}/src/main/wro/wro.xml</wroFile>
+					<wroManagerFactory>ro.isdc.wro.extensions.manager.standalone.GoogleStandaloneManagerFactory</wroManagerFactory>
+					<!-- <wroManagerFactory>ro.isdc.wro.extensions.manager.standalone.YUIStandaloneManagerFactory</wroManagerFactory> -->
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>jslint-maven-plugin</artifactId>
+				<version>1.0.1</version>
+				<executions>
+					<execution>
+						<phase>test</phase>
+						<goals>
+							<goal>jslint</goal>
+						</goals>
+						<configuration>
+							<excludes>
+								<exclude>vendor/**</exclude>
+							</excludes>
+							<disallowInsecureCharsInRegExp>false</disallowInsecureCharsInRegExp>
+							<allowOneVarStatementPerFunction>false</allowOneVarStatementPerFunction>
+							<predefinedVars>window, global, process, require, jQuery, GCN</predefinedVars>
+							<assumeABrowser>true</assumeABrowser>
+							<tolerateContinuation>true</tolerateContinuation>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+
+</project>

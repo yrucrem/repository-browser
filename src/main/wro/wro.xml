@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<groups xmlns="http://www.isdc.ro/wro">
+	<group name='repository-browser'>
+		<js>/lib/repository-browser.js</js>
+		<js>/nls/de/i18n.js</js>
+		<js>/nls/en/i18n.js</js>
+	</group>
+</groups>

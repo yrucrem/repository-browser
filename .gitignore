@@ -1,2 +1,8 @@
 *.swp
-shared
+target/
+.settings
+.project
+.classpath
+src/main/js/shared
+src/doc/output/
+src/doc/staging/
