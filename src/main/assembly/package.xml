@@ -16,6 +16,8 @@
 			</includes>
 		</fileSet>
 		-->
+
+		<!-- MIXED (vendor) -->
 		<fileSet>
 			<directory>${basedir}/src/main/js/vendor</directory>
 			<outputDirectory>/vendor</outputDirectory>
@@ -23,20 +25,35 @@
 				<include>**</include>
 			</includes>
 		</fileSet>
+		<!-- CSS -->
 		<fileSet>
-			<directory>${basedir}/target/bin</directory>
-			<outputDirectory>/repository-browser/bin</outputDirectory>
+			<directory>${basedir}/src/main/css</directory>
+			<outputDirectory>/repository-browser/css</outputDirectory>
 			<includes>
 				<include>**</include>
 			</includes>
 		</fileSet>
+		<!-- IMG -->
 		<fileSet>
-			<directory>${basedir}/target/debug</directory>
-			<outputDirectory>/repository-browser/debug</outputDirectory>
+			<directory>${basedir}/src/main/img</directory>
+			<outputDirectory>/repository-browser/img</outputDirectory>
 			<includes>
 				<include>**</include>
 			</includes>
 		</fileSet>
 	</fileSets>
+	<!-- JS (minified and unminified) -->
+	<files>
+		<file>
+			<outputDirectory>/repository-browser/js/</outputDirectory>
+			<source>${basedir}/target/bin/repository-browser.js</source>
+			<destName>repository-browser.js</destName>
+		</file>
+		<file>
+			<outputDirectory>/repository-browser/js/</outputDirectory>
+			<source>${basedir}/target/debug/repository-browser.js</source>
+			<destName>repository-browser-unminified.js</destName>
+		</file>
+	</files>
 	<includeBaseDirectory>false</includeBaseDirectory>
 </assembly>

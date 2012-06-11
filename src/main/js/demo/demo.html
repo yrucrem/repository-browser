@@ -9,7 +9,7 @@
 	                            common/highlighteditables,
 	                            common/link"></script -->
 
-	<link rel="stylesheet" type="text/css" href="../css/browser.css" />
+	<link rel="stylesheet" type="text/css" href="../../css/repository-browser.css" />
 
 	<script>
 		var SETTINGS = {
@@ -20,26 +20,26 @@
 	<script src="../shared/module-paths.js"></script>
 	<script src="../shared/vendor/require.js"></script>
 	<script>
-		var paths = MODULE_PATHS;
-		paths['jquery-layout'] = SETTINGS.root + '/vendor/jquery.layout';
-		paths['jstree'] = SETTINGS.root + '/vendor/jquery.jstree';
-		paths['jqgrid'] = SETTINGS.root + '/vendor/jquery.jqgrid';
-		paths['jqgrid-locale-en'] = SETTINGS.root + '/vendor/grid.locale.en';
-		paths['jqgrid-locale-de'] = SETTINGS.root + '/vendor/grid.locale.de';
-		paths['RepositoryBrowser'] = SETTINGS.root + '/lib/repository-browser';
-		paths['DemoBrowser'] = 'demo-browser';
-		paths['repository-browser-i18n-en'] = SETTINGS.root + '/nls/en/i18n';
-		require.config({paths: paths});
-	</script>
+		(function () {
+			var paths = MODULE_PATHS;
+			paths['jquery-layout'] = SETTINGS.root + 'vendor/jquery.layout';
+			paths['jstree'] = SETTINGS.root + 'vendor/jquery.jstree';
+			paths['jqgrid'] = SETTINGS.root + 'vendor/jquery.jqgrid';
+			paths['jqgrid-locale-en'] = SETTINGS.root + 'vendor/grid.locale.en';
+			paths['jqgrid-locale-de'] = SETTINGS.root + 'vendor/grid.locale.de';
+			paths['RepositoryBrowser'] = SETTINGS.root + 'lib/repository-browser';
+			paths['DemoBrowser'] = 'demo-browser';
+			paths['repository-browser-i18n-en'] = SETTINGS.root + 'nls/en/i18n';
+			require.config({paths: paths});
+		}());
 
-	<script>
 		require(['DemoBrowser'], function (DemoBrowser) {
 			var browser1 = window.browser1 = new DemoBrowser({
 				repositoryManager: null, // Aloha.RepositoryManager
 				repositoryFilter: null,
 				objectTypeFilter: null,
 				renditionFilter: ['*'],
-				rootPath: SETTINGS.root 
+				rootPath: window.SETTINGS && window.SETTINGS.root + '../'
 			});
 
 			var browser2 = window.browser2 = new DemoBrowser({
@@ -48,7 +48,7 @@
 				repositoryFilter: null,
 				objectTypeFilter: null,
 				renditionFilter: ['*'],
-				rootPath: SETTINGS.root,
+				rootPath: window.SETTINGS && window.SETTINGS.root + '../',
 				columns: {
 					col1: {title: 'Col 1', width: 200},
 					col2: {title: 'Col 2', width: 200}
