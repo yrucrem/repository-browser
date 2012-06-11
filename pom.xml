@@ -26,7 +26,6 @@
 			<groupId>com.gentics</groupId>
 			<version>0.1-SNAPSHOT</version>
 			<type>zip</type>
-			<!-- classifier>debug</classifier -->
 		</dependency>
 	</dependencies>
 
@@ -61,6 +60,30 @@
 							<descriptors>
 								<descriptor>${project.basedir}/src/main/assembly/package.xml</descriptor>
 							</descriptors>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>unpack</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>com.gentics</groupId>
+									<artifactId>common-js-libs</artifactId>
+									<type>zip</type>
+									<overWrite>true</overWrite>
+									<outputDirectory>${project.basedir}/src/main/js/shared/</outputDirectory>
+								</artifactItem>
+							</artifactItems>
 						</configuration>
 					</execution>
 				</executions>
@@ -133,6 +156,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-
 </project>
