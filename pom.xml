@@ -9,8 +9,8 @@
 
 	<name>Gentics Repository Browser</name>
 	<packaging>pom</packaging>
-	<description>This is the gentics repository browser.  It communicates with
-	the Repository Manager interface.</description>
+	<description>Gentics repository browser.  It communicates with the
+	Repository Manager interface.</description>
 
 	<url>http://www.gentics.com</url>
 
@@ -23,6 +23,12 @@
 	<dependencies>
 		<dependency>
 			<artifactId>common-js-libs</artifactId>
+			<groupId>com.gentics</groupId>
+			<version>0.1-SNAPSHOT</version>
+			<type>zip</type>
+		</dependency>
+		<dependency>
+			<artifactId>pubsub</artifactId>
 			<groupId>com.gentics</groupId>
 			<version>0.1-SNAPSHOT</version>
 			<type>zip</type>
@@ -60,26 +66,6 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.2.1</version>
-				<executions>
-					<execution>
-						<id>dist</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<attach>true</attach>
-							<appendAssemblyId>false</appendAssemblyId>
-							<descriptors>
-								<descriptor>${project.basedir}/src/main/assembly/package.xml</descriptor>
-							</descriptors>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
@@ -98,7 +84,34 @@
 									<overWrite>true</overWrite>
 									<outputDirectory>${project.basedir}/src/main/js/shared/</outputDirectory>
 								</artifactItem>
+								<artifactItem>
+									<groupId>com.gentics</groupId>
+									<artifactId>pubsub</artifactId>
+									<type>zip</type>
+									<overWrite>true</overWrite>
+									<outputDirectory>${project.basedir}/src/main/js/shared/</outputDirectory>
+								</artifactItem>
 							</artifactItems>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>dist</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<attach>true</attach>
+							<appendAssemblyId>false</appendAssemblyId>
+							<descriptors>
+								<descriptor>${project.basedir}/src/main/assembly/package.xml</descriptor>
+							</descriptors>
 						</configuration>
 					</execution>
 				</executions>
