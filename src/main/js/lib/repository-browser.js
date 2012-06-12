@@ -793,7 +793,9 @@ define('RepositoryBrowser', [
 				$btns.first.add($btns.prev).removeClass(CSS_DISABLED);
 			}
 
-			if (jQuery.isNumeric(this._pagingCount)) {
+			// FIXME: why does the jQuery object sometimes not have the
+			//        isNumeric() method?
+			if (jQuery.isNumeric && jQuery.isNumeric(this._pagingCount)) {
 				$btns.end.addClass(CSS_DISABLED);
 
 				if (data.length < this.pageSize) {
@@ -1017,6 +1019,10 @@ define('RepositoryBrowser', [
 		},
 
 		show: function () {
+			this.open();
+		},
+
+		open: function () {
 			if (this._isOpened) {
 				return;
 			}
@@ -1084,7 +1090,7 @@ define('RepositoryBrowser', [
 
 			this.element.fadeOut(250, function () {
 				jQuery(this).css('top', 0).hide();
-				if (0 === --openedBrowserInstances) {
+				if (0 === openedBrowserInstances || 0 === --openedBrowserInstances) {
 					jQuery('.repository-browser-modal-overlay').hide();
 				}
 			});
