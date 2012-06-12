@@ -1,9 +1,14 @@
 /*global define: true */
 
-define('RepositoryBrowser',
-['Class', 'jquery', 'repository-browser-i18n-' + (SETTINGS.lang || 'en'), 'jstree',
- 'jqgrid', 'jquery-layout'],
-function (Class, jQuery, i18n) {
+define('RepositoryBrowser', [
+	'Class',
+	'jquery',
+	'PubSub',
+	'repository-browser-i18n-' + (SETTINGS.lang || 'en'),
+	'jstree',
+	'jqgrid',
+	'jquery-layout'
+], function (Class, jQuery, PubSub, i18n) {
 	'use strict';
 
 	var openedBrowserInstances = 0;
@@ -173,7 +178,6 @@ function (Class, jQuery, i18n) {
 
 			jQuery.extend(this, options);
 
-			this._callbacks = {};
 			this._cachedRepositoryObjects = {};
 			this._searchQuery = null;
 			this._orderBy = null;
@@ -187,8 +191,8 @@ function (Class, jQuery, i18n) {
 			};
 
 			this._initializeUI();
-
 			browserInstances.push(this);
+			PubSub.pub('repository-browser.initialized', {data: this});
 		},
 
 		/**
@@ -208,7 +212,7 @@ function (Class, jQuery, i18n) {
 		 * Prepares the browser UI.
 		 */
 		_initializeUI: function () {
-			this.element.attr('data-aloha-browser', ++uid); //.html('');
+			this.element.attr('data-repository-browser', ++uid); //.html('');
 			this.element.width(this.maxWidth);
 
 			this.$_grid = this._createGrid(this.element).resize();
@@ -253,7 +257,7 @@ function (Class, jQuery, i18n) {
 			});
 
 			// IE7 Work-around: Otherwise tree will not be displayed correctly.
-			jQuery('.aloha-browser-grid').css('width', this.maxWidth);
+			jQuery('.repository-browser-grid').css('width', this.maxWidth);
 
 			this.close();
 		},
@@ -394,9 +398,9 @@ function (Class, jQuery, i18n) {
 		 *                                     initialized for jstree.
 		 */
 		_createTree: function ($container) {
-			var $tree = jQuery('<div class="aloha-browser-tree">');
-			var $header = jQuery('<div class="aloha-browser-tree-header ' +
-				'aloha-browser-grab-handle">' +
+			var $tree = jQuery('<div class="repository-browser-tree">');
+			var $header = jQuery('<div class="repository-browser-tree-header' +
+				' repository-browser-grab-handle">' +
 				this._i18n('Repository Browser') + '</div>');
 
 			$container.append($header, $tree);
@@ -453,9 +457,9 @@ function (Class, jQuery, i18n) {
 		 */
 		_createGrid: function ($container) {
 			var $grid = jQuery(
-				'<div class="aloha-browser-grid\
-				             aloha-browser-shadow\
-							 aloha-browser-rounded-top">\
+				'<div class="repository-browser-grid\
+				             repository-browser-shadow\
+							 repository-browser-rounded-top">\
 					<div class="ui-layout-west"></div>\
 					<div class="ui-layout-center"></div>\
 				</div>'
@@ -472,8 +476,8 @@ function (Class, jQuery, i18n) {
 		 * @return {jQuery<HTMLElement} The list element.
 		 */
 		_createList: function ($container) {
-			var $list = jQuery('<table id="aloha-browser-list-' + (++uid)
-			          + '" class="aloha-browser-list"></table>');
+			var $list = jQuery('<table id="repository-browser-list-' + (++uid)
+				+ '" class="repository-browser-list"></table>');
 
 			// This is a hidden utility column to help us with auto sorting.
 			var model = [{
@@ -504,7 +508,7 @@ function (Class, jQuery, i18n) {
 			 * We need a unique id, however, in order to distinguish pager
 			 * elements for each browser instance.
 			 */
-			var pagerUID = 'aloha-browser-list-page-' + (++uid);
+			var pagerUID = 'repository-browser-list-page-' + (++uid);
 			$container.append($list, jQuery('<div id="' + pagerUID + '">'));
 
 			$list.jqGrid({
@@ -515,8 +519,8 @@ function (Class, jQuery, i18n) {
 				colModel: model,
 				caption: '&nbsp;',
 				altRows: true,
-				altclass: 'aloha-browser-list-altrow',
-				resizeclass: 'aloha-browser-list-resizable',
+				altclass: 'repository-browser-list-altrow',
+				resizeclass: 'repository-browser-list-resizable',
 
 				// http://www.trirand.com/jqgridwiki/doku.php?id=wiki:pager&s[]=pager
 				pager: '#' + pagerUID,
@@ -578,7 +582,7 @@ function (Class, jQuery, i18n) {
 			// for now.
 			$container.find('.ui-pg-input').parent().hide();
 			$container.find('.ui-separator').parent().css('opacity', 0).first().hide();
-			$container.find('#aloha-browser-list-pager-left').hide();
+			$container.find('#repository-browser-list-pager-left').hide();
 
 			this._createTitlebar($container);
 
@@ -602,23 +606,23 @@ function (Class, jQuery, i18n) {
 			var $bar = $container.find('.ui-jqgrid-titlebar');
 
 			var $btns = jQuery(
-				'<div class="aloha-browser-btns">\
-					<input type="text" class="aloha-browser-search-field" />\
-					<span class="aloha-browser-btn aloha-browser-search-btn">\
-						<span class="aloha-browser-search-icon"></span>\
+				'<div class="repository-browser-btns">\
+					<input type="text" class="repository-browser-search-field" />\
+					<span class="repositroy-browser-btn repository-browser-search-btn">\
+						<span class="repository-browser-search-icon"></span>\
 					</span>\
-					<span class="aloha-browser-btn aloha-browser-close-btn">' +
+					<span class="repository-browser-btn repository-browser-close-btn">' +
 						this._i18n('Close') +
 					'</span>\
-					<div class="aloha-browser-clear"></div>\
+					<div class="repository-browser-clear"></div>\
 				</div>'
 			);
 
 			var that = this;
 
-			$bar.addClass('aloha-browser-grab-handle').append($btns);
+			$bar.addClass('repository-browser-grab-handle').append($btns);
 
-			$bar.find('.aloha-browser-search-btn')
+			$bar.find('.repository-browser-search-btn')
 			    .html(this._i18n('Search'))
 			    .click(function () {
 					that._triggerSearch();
@@ -626,10 +630,10 @@ function (Class, jQuery, i18n) {
 
 			var prefilledValue = this._i18n('Input search text...');
 
-			var $searchField = $bar.find('.aloha-browser-search-field');
+			var $searchField = $bar.find('.repository-browser-search-field');
 
 			$searchField.val(prefilledValue)
-			            .addClass("aloha-browser-search-field-empty");
+			            .addClass("repository-browser-search-field-empty");
 
 			$searchField.keypress(function (event) {
 				// On enter.
@@ -642,7 +646,7 @@ function (Class, jQuery, i18n) {
 				if (jQuery(this).val() === prefilledValue) {
 					jQuery(this)
 						.val('')
-						.removeClass('aloha-browser-search-field-empty');
+						.removeClass('repository-browser-search-field-empty');
 				}
 			});
 
@@ -650,26 +654,26 @@ function (Class, jQuery, i18n) {
 				if (jQuery(this).val() === '') {
 					jQuery(this)
 						.val(prefilledValue)
-						.addClass('aloha-browser-search-field-empty');
+						.addClass('repository-browser-search-field-empty');
 				}
 			});
 
-			$bar.find('.aloha-browser-close-btn')
+			$bar.find('.repository-browser-close-btn')
 			    .click(function () {
 					that.close();
 				});
 
-			$bar.find('.aloha-browser-btn')
+			$bar.find('.repository-browser-btn')
 			    .mousedown(function () {
-					jQuery(this).addClass('aloha-browser-pressed');
+					jQuery(this).addClass('repository-browser-pressed');
 				})
 			    .mouseup(function () {
-					jQuery(this).removeClass('aloha-browser-pressed');
+					jQuery(this).removeClass('repository-browser-pressed');
 				});
 		},
 
 		_triggerSearch: function () {
-			var $searchField = this.$_grid.find('input.aloha-browser-search-field');
+			var $searchField = this.$_grid.find('input.repository-browser-search-field');
 			this._pagingOffset = 0;
 			this._searchQuery = $searchField.val();
 			this._fetchItems(this._currentFolder);
@@ -825,20 +829,21 @@ function (Class, jQuery, i18n) {
 
 		_createOverlay: function () {
 			// We only want one overlay element.
-			if (0 === jQuery('.aloha-browser-modal-overlay').length) {
+			if (0 === jQuery('.repository-browser-modal-overlay').length) {
 				jQuery('body').append(
-					'<div class="aloha-browser-modal-overlay" ' +
+					'<div class="repository-browser-modal-overlay" ' +
 						'style="top: -99999px; z-index: 99999;"></div>');
 			}
 
 			var that = this;
 
 			// Register a close procedure for each browser instance.
-			jQuery('.aloha-browser-modal-overlay').click(function () {
+			jQuery('.repository-browser-modal-overlay').click(function () {
 				that.close();
 			});
 
-			var $container = jQuery('<div class="aloha-browser-modal-window"' +
+			var $container = jQuery(
+				'<div class="repository-browser-modal-window"' +
 				' style="top: -99999px; z-index: 99999;">');
 
 			jQuery('body').append($container);
@@ -910,8 +915,9 @@ function (Class, jQuery, i18n) {
 			jQuery.each(this.columns, function (name, value) {
 				switch (name) {
 				case 'icon':
-					row.icon = '<div class="aloha-browser-icon '
-							 + 'aloha-browser-icon-' + item.type + '"></div>';
+					row.icon = '<div class="repository-browser-icon '
+							 + 'repository-browser-icon-' + item.type
+							 + '"></div>';
 					break;
 				default:
 					row[name] = item[name] || '--';
@@ -1023,8 +1029,8 @@ function (Class, jQuery, i18n) {
 			var that = this;
 
 			if (this.isFloating) {
-				//$element.find('.aloha-browser-close-btn').show();
-				jQuery('.aloha-browser-modal-overlay')
+				//$element.find('.repository-browser-close-btn').show();
+				jQuery('.repository-browser-modal-overlay')
 					.stop()
 					.css({top: 0, left: 0})
 					.show();
@@ -1037,7 +1043,7 @@ function (Class, jQuery, i18n) {
 					left: (win.width() - $element.width()) / 2 - 30,
 					top: (win.height() - $element.height()) / 3 + 10
 				}).draggable({
-					handle: $element.find('.aloha-browser-grab-handle')
+					handle: $element.find('.repository-browser-grab-handle')
 				});
 
 				// Do wake-up animation.
@@ -1061,7 +1067,7 @@ function (Class, jQuery, i18n) {
 					opacity: 1,
 					filter: 'progid:DXImageTransform.Microsoft.gradient(enabled=false)'
 				});
-				//$element.find('.aloha-browser-close-btn').hide();
+				//$element.find('.repository-browser-close-btn').hide();
 			}
 
 			this._onWindowResized();
@@ -1079,7 +1085,7 @@ function (Class, jQuery, i18n) {
 			this.element.fadeOut(250, function () {
 				jQuery(this).css('top', 0).hide();
 				if (0 === --openedBrowserInstances) {
-					jQuery('.aloha-browser-modal-overlay').hide();
+					jQuery('.repository-browser-modal-overlay').hide();
 				}
 			});
 			jQuery('body').css('overflow', 'auto');
