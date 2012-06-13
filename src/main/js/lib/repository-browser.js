@@ -2,7 +2,7 @@
 
 define('RepositoryBrowser', [
 	'Class',
-	'jquery',
+	'jQuery',
 	'PubSub',
 	'repository-browser-i18n-' + (__DEPS__.lang || 'en'),
 	'jstree',
@@ -793,13 +793,7 @@ define('RepositoryBrowser', [
 				$btns.first.add($btns.prev).removeClass(CSS_DISABLED);
 			}
 
-			if (!jQuery.isNumeric) {
-				debugger;
-			}
-
-			// FIXME: why does the jQuery object sometimes not have the
-			//        isNumeric() method?
-			if (jQuery.isNumeric && jQuery.isNumeric(this._pagingCount)) {
+			if (jQuery.isNumeric(this._pagingCount)) {
 				$btns.end.addClass(CSS_DISABLED);
 
 				if (data.length < this.pageSize) {
