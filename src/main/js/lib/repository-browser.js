@@ -4,7 +4,7 @@ define('RepositoryBrowser', [
 	'Class',
 	'jquery',
 	'PubSub',
-	'repository-browser-i18n-' + (SETTINGS.lang || 'en'),
+	'repository-browser-i18n-' + (__DEPS__.lang || 'en'),
 	'jstree',
 	'jqgrid',
 	'jquery-layout'
@@ -791,6 +791,10 @@ define('RepositoryBrowser', [
 				$btns.first.add($btns.prev).addClass(CSS_DISABLED);
 			} else {
 				$btns.first.add($btns.prev).removeClass(CSS_DISABLED);
+			}
+
+			if (!jQuery.isNumeric) {
+				debugger;
 			}
 
 			// FIXME: why does the jQuery object sometimes not have the

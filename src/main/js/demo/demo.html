@@ -12,7 +12,7 @@
 	<link rel="stylesheet" type="text/css" href="../../css/repository-browser.css" />
 
 	<script>
-		var SETTINGS = {
+		var __DEPS__ = {
 			lang: 'en',
 			root: '../'
 		};
@@ -21,16 +21,15 @@
 	<script src="../shared/vendor/require.js"></script>
 	<script>
 		(function () {
-			var paths = MODULE_PATHS;
-			paths['jquery-layout'] = SETTINGS.root + 'vendor/jquery.layout';
-			paths['jstree'] = SETTINGS.root + 'vendor/jquery.jstree';
-			paths['jqgrid'] = SETTINGS.root + 'vendor/jquery.jqgrid';
-			paths['jqgrid-locale-en'] = SETTINGS.root + 'vendor/grid.locale.en';
-			paths['jqgrid-locale-de'] = SETTINGS.root + 'vendor/grid.locale.de';
-			paths['RepositoryBrowser'] = SETTINGS.root + 'lib/repository-browser';
-			paths['DemoBrowser'] = 'demo-browser';
-			paths['repository-browser-i18n-en'] = SETTINGS.root + 'nls/en/i18n';
-			require.config({paths: paths});
+			__DEPS__.paths['jquery-layout'] = __DEPS__.root + 'vendor/jquery.layout';
+			__DEPS__.paths['jstree'] = __DEPS__.root + 'vendor/jquery.jstree';
+			__DEPS__.paths['jqgrid'] = __DEPS__.root + 'vendor/jquery.jqgrid';
+			__DEPS__.paths['jqgrid-locale-en'] = __DEPS__.root + 'vendor/grid.locale.en';
+			__DEPS__.paths['jqgrid-locale-de'] = __DEPS__.root + 'vendor/grid.locale.de';
+			__DEPS__.paths['RepositoryBrowser'] = __DEPS__.root + 'lib/repository-browser';
+			__DEPS__.paths['DemoBrowser'] = 'demo-browser';
+			__DEPS__.paths['repository-browser-i18n-en'] = __DEPS__.root + 'nls/en/i18n';
+			require.config({paths: __DEPS__.paths});
 		}());
 
 		require(['DemoBrowser'], function (DemoBrowser) {
@@ -39,7 +38,7 @@
 				repositoryFilter: null,
 				objectTypeFilter: null,
 				renditionFilter: ['*'],
-				rootPath: window.SETTINGS && window.SETTINGS.root + '../'
+				rootPath: __DEPS__.root + '../'
 			});
 
 			var browser2 = window.browser2 = new DemoBrowser({
@@ -48,7 +47,7 @@
 				repositoryFilter: null,
 				objectTypeFilter: null,
 				renditionFilter: ['*'],
-				rootPath: window.SETTINGS && window.SETTINGS.root + '../',
+				rootPath: __DEPS__.root + '../',
 				columns: {
 					col1: {title: 'Col 1', width: 200},
 					col2: {title: 'Col 2', width: 200}

@@ -1,5 +1,5 @@
 define('jqgrid',
-['jquery', 'jqgrid-locale-' + (SETTINGS.lang || 'en'), 'jqueryui'],
+['jquery', 'jqgrid-locale-' + (__DEPS__.lang || 'en'), 'jqueryui'],
 function (jQuery) {
 var $ = jQuery;
 
