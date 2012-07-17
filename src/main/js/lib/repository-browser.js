@@ -587,6 +587,7 @@ define('RepositoryBrowser', [
 			var listProps = $list[0].p;
 			$container.find('.ui-jqgrid-view tr:first th div').each(function (i) {
 				if (false !== listProps.colModel[i].sortable) {
+					jQuery(this).css('cursor', 'pointer');
 					jQuery(this).unbind().click(function (event) {
 						event.stopPropagation();
 						that._sortList(listProps.colModel[i], this);
