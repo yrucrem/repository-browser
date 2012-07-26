@@ -71,7 +71,7 @@ define('RepositoryBrowser', [
 			data: {
 				title: obj.name,
 				attr: {'data-repo-obj': obj.uid},
-				icon: icon
+				icon: icon || ''
 			},
 			attr: obj.type ? {rel: obj.type} : undefined,
 			state: (obj.hasMoreItems || 'folder' === obj.baseType)
@@ -294,7 +294,8 @@ define('RepositoryBrowser', [
 			];
 			var j = imgs.length;
 			while (j) {
-				(new Image()).src = path + imgs[--j];
+				var img = document.createElement('img');
+				img.src = path + imgs[--j];
 			}
 		},
 
@@ -304,13 +305,18 @@ define('RepositoryBrowser', [
 		 * @param {items} items A list of retrieved items.
 		 * @param {function} callback Function to receive the processed items.
 		 */
-		_processRepoResponse: function (items, callback) {
+		_processRepoResponse: function (items, metainfo, callback) {
 			var data = [];
 			var i;
+			// if the second parameter is a function, it is the callback
+			if (typeof metainfo === 'function') {
+				callback = metainfo;
+				metainfo = undefined;
+			}
 			for (i = 0; i < items.length; i++) {
 				data.push(this._harvestRepoObject(items[i]));
 			}
-			callback(data);
+			callback(data, metainfo);
 		},
 
 		/**
@@ -577,7 +583,7 @@ define('RepositoryBrowser', [
 			// for now.
 			$container.find('.ui-pg-input').parent().hide();
 			$container.find('.ui-separator').parent().css('opacity', 0).first().hide();
-			$container.find('#repository-browser-list-pager-left').hide();
+			//$container.find('#repository-browser-list-pager-left').hide();
 
 			this._createTitlebar($container);
 
@@ -587,6 +593,7 @@ define('RepositoryBrowser', [
 			var listProps = $list[0].p;
 			$container.find('.ui-jqgrid-view tr:first th div').each(function (i) {
 				if (false !== listProps.colModel[i].sortable) {
+					jQuery(this).css('cursor', 'pointer');
 					jQuery(this).unbind().click(function (event) {
 						event.stopPropagation();
 						that._sortList(listProps.colModel[i], this);
@@ -669,8 +676,14 @@ define('RepositoryBrowser', [
 
 		_triggerSearch: function () {
 			var $searchField = this.$_grid.find('input.repository-browser-search-field');
+			var searchValue = $searchField.val();
+
+			if (jQuery($searchField).hasClass('aloha-browser-search-field-empty') ||
+			    '' == searchValue.val()) {
+				searchValue = null;
+			}
 			this._pagingOffset = 0;
-			this._searchQuery = $searchField.val();
+			this._searchQuery = searchValue;
 			this._fetchItems(this._currentFolder);
 		},
 
@@ -701,7 +714,12 @@ define('RepositoryBrowser', [
 				this._pagingOffset = 0;
 				break;
 			case 'end':
-				this._pagingOffset = this._pagingCount - this.pageSize;
+				if ((this._pagingCount % this.pageSize) === 0) {
+					// item count is exactly divisible by page size
+					this._pagingOffset = this._pagingCount - this.pageSize;
+				} else {
+					this._pagingOffset = this._pagingCount - (this._pagingCount % this.pageSize);
+				}
 				break;
 			case 'next':
 				this._pagingOffset += this.pageSize;
@@ -773,7 +791,7 @@ define('RepositoryBrowser', [
 			// number of pages.
 			this._pagingCount = (metainfo && jQuery.isNumeric(metainfo.numItems))
 			                  ? metainfo.numItems
-							  : null;
+							  : null; // todo should we use undefined?
 
 			this.$_grid.find('.loading').hide();
 			this.$_list.show();
@@ -892,8 +910,10 @@ define('RepositoryBrowser', [
 				var that = this;
 				this.repositoryManager.query(params, function (response) {
 					that._processRepoResponse(
-						(response.results > 0) ? response.items : [],
-						callback
+						(response.results > 0) ? response.items : [], {
+							numItems: response.numItems,
+							hasMoreItems: response.hasMoreItems
+						}, callback
 					);
 				});
 			}
@@ -975,10 +995,17 @@ define('RepositoryBrowser', [
 			return null;
 		},
 
+		getFieldOfHeader: function ($th) {
+			return $th.find('div.ui-jqgrid-sortable').attr('id').replace('jqgh_', '');
+		},
+	
 		_fetchItems: function (folder) {
 			if (!folder) {
 				return;
 			}
+
+			// When searching, we do this recursive
+			var recursive = (typeof this._searchQuery === 'string');
 
 			this.$_list.setCaption((typeof this._searchQuery === 'string')
 				? this._i18n('Searching for') + ' "' + this._searchQuery + '" ' +
@@ -999,7 +1026,8 @@ define('RepositoryBrowser', [
 				maxItems: this.pageSize,
 				objectTypeFilter: this.objectTypeFilter,
 				renditionFilter: this.renditionFilter,
-				filter: this.filter
+				filter: this.filter,
+				recursive: recursive
 			}, function (data, metainfo) {
 				that._processItems(data, metainfo);	
 			});
@@ -1024,7 +1052,6 @@ define('RepositoryBrowser', [
 
 			this._isOpened = true;
 			var $element = this.element;
-			var that = this;
 
 			if (this.isFloating) {
 				//$element.find('.repository-browser-close-btn').show();
@@ -1069,7 +1096,6 @@ define('RepositoryBrowser', [
 			}
 
 			this._onWindowResized();
-
 			++openedBrowserInstances;
 		},
 
@@ -1086,6 +1112,17 @@ define('RepositoryBrowser', [
 					jQuery('.repository-browser-modal-overlay').hide();
 				}
 			});
+		},
+
+		/**
+		 * Refreshes the browser.
+		 */
+		refresh: function () {
+			// TODO: refresh the tree?
+			// refresh the list, if we have a current folder
+			if (this._currentFolder) {
+				this._fetchItems(this._currentFolder);
+			}
 		}
 
 	});
