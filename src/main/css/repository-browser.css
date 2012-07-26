@@ -421,7 +421,7 @@ tr.ui-search-toolbar select {margin: 1px 0px 0px 0px}
 		rgba(0,   0,   0,   0.7)
 	);
 }
-.repository-browser-modal-window {
+div.repository-browser-modal-window {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -743,3 +743,4 @@ tr.ui-search-toolbar select {margin: 1px 0px 0px 0px}
  .repository-browser-search-btn {
 	 display: none; 
  }
+
