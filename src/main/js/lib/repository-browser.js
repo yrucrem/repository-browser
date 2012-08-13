@@ -11,9 +11,8 @@ define('RepositoryBrowser', [
 ], function (Class, jQuery, PubSub, i18n) {
 	'use strict';
 
-	var openedBrowserInstances = 0;
 	var browserInstances = [];
-	var numOpenBrowsers = 0;
+	var numOpenedBrowsers = 0;
 	var uid = (new Date()).getTime();
 	var DEFAULTS = {
 		repositoryManager: null,
@@ -1101,7 +1100,7 @@ define('RepositoryBrowser', [
 			}
 
 			this._onWindowResized();
-			++openedBrowserInstances;
+			++numOpenedBrowsers;
 		},
 
 		close: function () {
@@ -1113,7 +1112,7 @@ define('RepositoryBrowser', [
 
 			this.element.fadeOut(250, function () {
 				jQuery(this).css('top', 0).hide();
-				if (0 === openedBrowserInstances || 0 === --openedBrowserInstances) {
+				if (0 === numOpenedBrowsers || 0 === --numOpenedBrowsers) {
 					jQuery('.repository-browser-modal-overlay').hide();
 				}
 			});
