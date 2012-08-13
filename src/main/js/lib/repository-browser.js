@@ -1,5 +1,3 @@
-/*global define: true */
-
 define('RepositoryBrowser', [
 	'Class',
 	'jquery',
@@ -83,8 +81,8 @@ define('RepositoryBrowser', [
 	/**
 	 * Prevents native browser selection on the given element.
 	 *
-	 * @param {jQuery<HTMLElement>} element An element on which to prevent
-	 *                                      selection.
+	 * @param {jQuery.<HTMLElement>} element An element on which to prevent
+	 *                                       selection.
 	 */
 	function disableSelection($element) {
 		$element.each(function () {
@@ -132,7 +130,7 @@ define('RepositoryBrowser', [
 		$_tree: null,
 
 		/**
-		 * @type {jQuery<HTMLElement>} The layout of the browser panels.
+		 * @type {jQuery.<HTMLElement>} The layout of the browser panels.
 		 */
 		$_list: null,
 
@@ -193,9 +191,9 @@ define('RepositoryBrowser', [
 		 * Retrieves the corresponding internationalization string for the
 		 * given keyword.
 		 *
-		 * @param {string} key The key for which an full i18n string is
+		 * @param {string} key The key for which a full i18n string is
 		 *                     retrieved.
-		 * @return {string} The seturn value is either the i18n value matched
+		 * @return {string} The return value is either the i18n value matched
 		 *                  by the given key, or else null.
 		 */
 		_i18n: function (key) {
@@ -217,10 +215,9 @@ define('RepositoryBrowser', [
 			var give = this.treeWidth / 5;
 
 			this.$_grid.layout({
-				// Disable cursor hot keys since they interfere with
-				// text editing. For example, CTRL+left (wordwise left)
-				// and CTRL+SHIFT+left (select wordwise left) would stop
-				// working.
+				// Disable cursor hot keys since they interfere with text
+				// editing.  For example, CTRL+left (wordwise left) and
+				// CTRL+SHIFT+left (select wordwise left) would stop working.
 				enableCursorHotkey: false,
 				west__size: this.treeWidth - 1,
 				west__minSize: this.treeWidth - give,
@@ -238,7 +235,6 @@ define('RepositoryBrowser', [
 			}).sizePane('west', this.treeWidth); // Fix for a ui-layout bug in
 			                                     // chrome.
 			disableSelection(this.$_grid);
-
 			this._preloadImages();
 
 			jQuery(function () {
@@ -262,7 +258,7 @@ define('RepositoryBrowser', [
 		},
 
 		/**
-		 * Automatically resize the browser modal, constraining its dimensionss
+		 * Automatically resize the browser modal, constraining its dimensions
 		 * between minWidth and maxWidth.
 		 */
 		_onWindowResized: function () {
@@ -306,7 +302,7 @@ define('RepositoryBrowser', [
 		/**
 		 * Process the received repository items.
 		 *
-		 * @param {items} items A list of retrieved items.
+		 * @param {Array.<object>} items A list of retrieved items.
 		 * @param {function} callback Function to receive the processed items.
 		 */
 		_processRepoResponse: function (items, metainfo, callback) {
@@ -325,10 +321,10 @@ define('RepositoryBrowser', [
 
 		/**
 		 * Convert a repository object into an object that can be used with our
-		 * tree component.  Also add a reference to this object in our objs
-		 * hash.  According to the Repository specification, each object will
-		 * at least have the following properties at least: id, name, url, and
-		 * type.  Any and all other attributes are optional.
+		 * tree component.  Also add a reference to this object in the cache.
+		 * According to the Repository specification, each object will at least
+		 * have the following properties: id, name, url, and type.
+		 * Any and all other attributes are optional.
 		 *
 		 * @param {object} repositoryObject An object received from a
 		 *                                  repository.
@@ -359,6 +355,16 @@ define('RepositoryBrowser', [
 			}
 		},
 
+		/**
+		 * Retrieves a cached repository object that is associated with the
+		 * given node element.
+		 *
+		 * @param {jQuery.<HTMLElement> $node The element whose corresponding
+		 *                                    repository object is to be
+		 *                                    retreived.
+		 * @return {!Object} The cached repository object or null if none is
+		 *                   found in the cache.
+		 */
 		_getObjectFromCache: function ($node) {
 			if ($node && $node.length) {
 				var id = $node.find('a:first').attr('data-repo-obj');
@@ -368,11 +374,10 @@ define('RepositoryBrowser', [
 		},
 
 		/**
-		 * Invoked when an item in the jstree folder tree is clicked.  It will
-		 * query the repository manager for items contained in the clicked
-		 * folder.
+		 * Queries the repository manager for items contained in folder that
+		 * was clicked.
 		 *
-		 * @param {jQuery<Event>} $event jQuery event object.  Unused.
+		 * @param {jQuery.<Event>} $event jQuery event object.  Unused.
 		 * @param {object} data An object containing information about the
 		 *                      jstree node that was clicked.
 		 */
@@ -393,14 +398,14 @@ define('RepositoryBrowser', [
 		},
 
 		/**
-		 * Render and initialize a jstree instance in the given container
+		 * Render and initialize a jstree instance for the given container
 		 * element.
 		 *
-		 * @param {jQuery<HTMLElement>} $container The element in which the
-		 *                                         jstree instance will be
-		 *                                         rendered.
-		 * @return {jQuery<HTMLElement>} $tree Element which has been
-		 *                                     initialized for jstree.
+		 * @param {jQuery.<HTMLElement>} $container The element in which the
+		 *                                          jstree instance will be
+		 *                                          rendered.
+		 * @return {jQuery.<HTMLElement>} $tree Element which has been
+		 *                                      initialized for jstree.
 		 */
 		_createTree: function ($container) {
 			var $tree = jQuery('<div class="repository-browser-tree">');
@@ -456,9 +461,9 @@ define('RepositoryBrowser', [
 		 * in which we render the folder list tree, and a the folder items
 		 * list.
 		 *
-		 * @param {jQuery<HTMLElement>} $container A DOM element in which to
-		 *                                         render the grid.
-		 * @return {jQuery<HTMLElement} The grid element.
+		 * @param {jQuery.<HTMLElement>} $container A DOM element in which to
+		 *                                          render the grid.
+		 * @return {jQuery.<HTMLElement} The grid element.
 		 */
 		_createGrid: function ($container) {
 			var $grid = jQuery(
@@ -476,9 +481,9 @@ define('RepositoryBrowser', [
 		/**
 		 * Creates a table inwhich to render repository items.
 		 *
-		 * @param {jQuery<HTMLElement>} $container A DOM element in which to
-		 *                                         render the list.
-		 * @return {jQuery<HTMLElement} The list element.
+		 * @param {jQuery.<HTMLElement>} $container A DOM element in which to
+		 *                                          render the list.
+		 * @return {jQuery.<HTMLElement} The list element.
 		 */
 		_createList: function ($container) {
 			var $list = jQuery('<table id="repository-browser-list-' + (++uid)
@@ -530,15 +535,15 @@ define('RepositoryBrowser', [
 				// http://www.trirand.com/jqgridwiki/doku.php?id=wiki:pager&s[]=pager
 				pager: '#' + pagerUID,
 
-				// # of records to view in the grid. Passed as parameter to url
-				// when retrieving data from servergq
+				// # of records to view in the grid.  Passed as parameter to url
+				// when retrieving data from server.
 				//rowNum: this.pageSize,
 				viewrecords: true,
 
 				// Event handlers:
 				// http://www.trirand.com/jqgridwiki/doku.php?id=wiki:events
-				// fires after click on [page button] and before populating the
-				// data
+				// Fires after click on [page button] and before populating the
+				// data.
 				onPaging: function (button) {},
 
 				// Called if the request fails.
@@ -551,7 +556,7 @@ define('RepositoryBrowser', [
 				// other processes are complete.
 				gridComplete: function () {},
 
-				// executed immediately after every server request
+				// Executed immediately after every server request.
 				loadComplete: function (data) {}
 			});
 
@@ -583,7 +588,7 @@ define('RepositoryBrowser', [
 							});
 					});
 
-			// TODO: Implement this once repositories can handle it, hidding it
+			// TODO: Implement this once repositories can handle it; hiding it
 			// for now.
 			$container.find('.ui-pg-input').parent().hide();
 			$container.find('.ui-separator').parent().css('opacity', 0).first().hide();
@@ -642,7 +647,7 @@ define('RepositoryBrowser', [
 			            .addClass("repository-browser-search-field-empty");
 
 			$searchField.keypress(function (event) {
-				// On enter.
+				// On ENTER.
 				if (13 === event.keyCode) {
 					that._triggerSearch();
 				}
@@ -742,14 +747,12 @@ define('RepositoryBrowser', [
 		 */
 		_setSortOrder: function (by, order) {
 			var sortItem = {};
-
-			sortItem[by] = order || 'asc';
-
 			var isFound = false;
 			var orderBy = this._orderBy || [];
 			var orderItem;
 			var field;
 			var i;
+			sortItem[by] = order || 'asc';
 
 			for (i = 0; i < orderBy.length; ++i) {
 				orderItem = orderBy[i];
@@ -795,7 +798,7 @@ define('RepositoryBrowser', [
 			// number of pages.
 			this._pagingCount = (metainfo && jQuery.isNumeric(metainfo.numItems))
 			                  ? metainfo.numItems
-							  : null; // todo should we use undefined?
+							  : null; // TODO: should we use undefined?
 
 			this.$_grid.find('.loading').hide();
 			this.$_list.show();
@@ -983,8 +986,8 @@ define('RepositoryBrowser', [
 		/**
 		 * Handles click events on rows.
 		 *
-		 * @param {jQuery<Event>} jQuery event object.
-		 * @return {jQuery<HTMLElement>} The clicked row of null.
+		 * @param {jQuery.<Event>} jQuery event object.
+		 * @return {jQuery.<HTMLElement>} The clicked row of null.
 		 */
 		rowClicked: function ($event) {
 			var row = jQuery($event.target).parent('tr');
@@ -1008,7 +1011,7 @@ define('RepositoryBrowser', [
 				return;
 			}
 
-			// When searching, we do this recursive
+			// When searching, we do this recursively.
 			var recursive = (typeof this._searchQuery === 'string');
 
 			this.$_list.setCaption((typeof this._searchQuery === 'string')
@@ -1075,7 +1078,7 @@ define('RepositoryBrowser', [
 					handle: $element.find('.repository-browser-grab-handle')
 				});
 
-				// Do wake-up animation.
+				// Wake-up animation.
 				this.$_grid.css({
 					marginTop: 0,
 					opacity: 0
@@ -1120,10 +1123,10 @@ define('RepositoryBrowser', [
 
 		/**
 		 * Refreshes the browser.
+		 * TODO: Should we also refresh the tree?
 		 */
 		refresh: function () {
-			// TODO: refresh the tree?
-			// refresh the list, if we have a current folder
+			// Refresh the list, if we have a current folder.
 			if (this._currentFolder) {
 				this._fetchItems(this._currentFolder);
 			}
