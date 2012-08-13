@@ -1,3 +1,9 @@
+/*!
+ * Aloha Editor
+ * Author & Copyright (c) 2012 Gentics Software GmbH
+ * aloha-sales@gentics.com
+ * Licensed under the terms of http://www.aloha-editor.com/license.html
+ */
 define('RepositoryBrowser', [
 	'Class',
 	'jquery',
