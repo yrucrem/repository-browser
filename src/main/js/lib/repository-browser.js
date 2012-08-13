@@ -194,10 +194,10 @@ define('RepositoryBrowser', [
 		 * @param {string} key The key for which a full i18n string is
 		 *                     retrieved.
 		 * @return {string} The return value is either the i18n value matched
-		 *                  by the given key, or else null.
+		 *                  by the given key, or else the key.
 		 */
 		_i18n: function (key) {
-			return this.i18n[key] || null;
+			return this.i18n[key] || key;
 		},
 
 		/**
