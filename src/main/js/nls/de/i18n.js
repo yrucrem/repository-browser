@@ -1,4 +1,5 @@
 define('repository-browser-i18n-de', [], function () {
+	'use strict';
 	return {
 		'Browsing': 'Browsing',
 		'Close': 'Schließn',

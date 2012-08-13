@@ -1,4 +1,5 @@
 define('repository-browser-i18n-en', [], function () {
+	'use strict';
 	return {
 		'Browsing': 'Browsing',
 		'Close': 'Close',
@@ -10,6 +11,6 @@ define('repository-browser-i18n-en', [], function () {
 		'Search': 'Search',
 		'Searching for': 'Searching for',
 		'Viewing': 'Viewing',
-		'button.switch-metaview.tooltip': 'Switch between meta and normal view' 
+		'button.switch-metaview.tooltip': 'Switch between meta and normal view'
 	};
 });
