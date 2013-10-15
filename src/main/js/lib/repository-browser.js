@@ -39,7 +39,8 @@ define('RepositoryBrowser', [
 		maxHeight: 1000,
 		minHeight: 400,
 		minWidth: 400,
-		maxWidth: 1200,
+		// Make bigger the maxWidth so the user can expand as much as he wants
+		maxWidth: 2000,
 		treeWidth: 300,
 		listWidth: 'auto',
 		pageSize: 8,
@@ -178,6 +179,12 @@ define('RepositoryBrowser', [
 
 		/**
 		 * @private
+		 * @type <object> jQuery object pointed to overlay when overlay it's created
+		 */
+		$_modalOverlay: null,
+
+		/**
+		 * @private
 		 * @type <object> The repository objects queried through this browser.
 		 */
 		_cachedRepositoryObjects: {},
@@ -294,7 +301,7 @@ define('RepositoryBrowser', [
 			this.$_tree = this._createTree(this.$_grid.find('.ui-layout-west'));
 			this.$_list = this._createList(this.$_grid.find('.ui-layout-center'));
 
-			var that = this;
+			var thisRepository = this;
 			var give = this.treeWidth / 5;
 
 			this.$_grid.layout({
@@ -311,7 +318,7 @@ define('RepositoryBrowser', [
 				togglerClass: 'ui-layout-toggler',
 				onresize: function (name, $element) {
 					if ('center' === name) {
-						that.$_list.setGridWidth($element.width());
+						thisRepository.$_list.setGridWidth($element.width());
 					}
 				}
 				// , applyDefaultStyles: true
@@ -322,7 +329,7 @@ define('RepositoryBrowser', [
 
 			jQuery(function () {
 				jQuery(window).resize(function () {
-					that._onWindowResized();
+					thisRepository._onWindowResized();
 				});
 			});
 
@@ -335,7 +342,23 @@ define('RepositoryBrowser', [
 			});
 
 			// IE7 Work-around: Otherwise tree will not be displayed correctly.
-			jQuery('.repository-browser-grid').css('width', this.maxWidth);
+			this.$_grid.css('width', this.maxWidth);
+
+			this.$_grid.resizable({
+					autoHide: true,
+					minWidth: thisRepository.minWidth,
+					minHeight: thisRepository.minHeight,
+					maxWidth: thisRepository.maxWidth,
+					maxHeight: thisRepository.maxHeight,
+					handles: 'all',
+					resize: function (e, ui) {
+						var overflowHorizontal = thisRepository.maxWidth - ui.size.width;
+						var overflowVertical = thisRepository.maxHeight - ui.size.height;
+						thisRepository._resizeHorizontal(overflowHorizontal);
+						thisRepository._resizeVertical(overflowVertical);
+						thisRepository._resizeInnerComponents();
+					}
+				});
 
 			this.close();
 
@@ -344,29 +367,17 @@ define('RepositoryBrowser', [
 		},
 
 		/**
-		 * Sets the initial height of the repository browser using the minHeight maxHeight setting.
+		 * Resize the components of the repository browser:
+		 * <ul>
+		 *     <li>jsTree</li>
+		 *     <li>jqGrid</li>
+		 *     <li>List of items inside of jqGrid</li>
+		 * </ul>
+		 * @private
 		 */
-		_setInitialHeight: function () {
+		_resizeInnerComponents: function () {
 
-			var overflow = this.maxHeight - jQuery(window).height() + this.verticalPadding;
-			var targetHeight = overflow > 0 ? Math.max(this.minHeight, this.maxHeight - overflow) : this.maxHeight;
-
-			this.$_grid.height(targetHeight);
-		},
-
-		/**
-		 * Automatically resize the browser modal, constraining its dimensions
-		 * between minWidth and maxWidth.
-		 */
-		_onWindowResized: function () {
-			var overflow = this.maxWidth - jQuery(window).width() + this.horizontalPadding, $header, $container;
-			var target = overflow > 0
-			           ? Math.max(this.minWidth, this.maxWidth - overflow)
-					   : this.maxWidth;
-			this.element.width(target);
-			this.$_grid.width(target);
-
-			this._setInitialHeight();
+			var $header, $container;
 
 			// adapt tree
 			$header = this.$_grid.find('.repository-browser-tree-header');
@@ -376,9 +387,9 @@ define('RepositoryBrowser', [
 			$container = this.$_grid.find('.ui-layout-center');
 			$container.find('.ui-jqgrid-bdiv').height(this.$_grid.height() - (
 				$container.find('.ui-jqgrid-titlebar').height() +
-				$container.find('.ui-jqgrid-hdiv').height() +
-				$container.find('.ui-jqgrid-pager').height()
-			));
+					$container.find('.ui-jqgrid-hdiv').height() +
+					$container.find('.ui-jqgrid-pager').height()
+				));
 
 			// adapt paging
 			if (this._adaptPageSize()) {
@@ -387,6 +398,54 @@ define('RepositoryBrowser', [
 					this._fetchItems(this._currentFolder);
 				}
 			}
+		},
+
+		/**
+		 * Resize browser vertically
+		 * @param {number} overflow indicates the overflow of the limit vertically
+		 * @private
+		 */
+		_resizeVertical: function (overflow) {
+			var targetHeight = overflow > 0 ? Math.max(this.minHeight, this.maxHeight - overflow) : this.maxHeight;
+
+			var overlayHeight = this.$_modalOverlay.height() - this.verticalPadding;
+
+			this.$_grid.height(targetHeight);
+		},
+
+		/**
+		 * Resize browser horizontally
+		 * @param  {number} overflow indicates the overflow of the limit horizontally
+		 * @private
+		 */
+		_resizeHorizontal: function(overflow) {
+			var targetWidth = overflow > 0
+				? Math.max(this.minWidth, this.maxWidth - overflow)
+				: this.maxWidth;
+			var overlayWidth = this.$_modalOverlay.width() - this.horizontalPadding;
+
+			this.element.width(targetWidth);
+			this.$_grid.width(targetWidth);
+		},
+
+		/**
+		 * Sets the initial height of the repository browser using the minHeight maxHeight setting.
+		 */
+		_setInitialHeight: function () {
+			var overflow = this.maxHeight - jQuery(window).height() + this.verticalPadding;
+			this._resizeVertical(overflow, true);
+		},
+
+		/**
+		 * Automatically resize the browser modal, constraining its dimensions
+		 * between minWidth and maxWidth.
+		 */
+		_onWindowResized: function () {
+			var $window = jQuery(window);
+			var overflow = this.maxWidth - $window.width() + this.horizontalPadding;
+			this._resizeHorizontal.call(this, overflow, true);
+			this._setInitialHeight();
+			this._resizeInnerComponents();
 		},
 
 		/**
@@ -1015,24 +1074,26 @@ define('RepositoryBrowser', [
 
 		_createOverlay: function () {
 			// We only want one overlay element.
-			if (0 === jQuery('.repository-browser-modal-overlay').length) {
-				jQuery('body').append(
-					'<div class="repository-browser-modal-overlay" ' +
-						'style="top: -99999px; z-index: 99999;"></div>');
+			this.$_modalOverlay = jQuery('.repository-browser-modal-overlay');
+			if (0 === this.$_modalOverlay.length) {
+				this.$_modalOverlay = jQuery('<div class="repository-browser-modal-overlay" ' +
+					'style="top: -99999px; z-index: 9999;"></div>');
+				jQuery('body').append(this.$_modalOverlay);
 			}
 
 			var that = this;
 
 			// Register a close procedure for each browser instance.
-			jQuery('.repository-browser-modal-overlay').click(function () {
+			this.$_modalOverlay.click(function () {
 				that.close();
 			});
 
 			var $container = jQuery(
 				'<div class="repository-browser-modal-window"' +
-				' style="top: -99999px; z-index: 99999;">');
+				' style="top: -99999px; z-index: 99999; position: absolute"; >');
 
 			jQuery('body').append($container);
+
 
 			return $container;
 		},
