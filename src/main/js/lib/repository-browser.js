@@ -500,6 +500,9 @@
 				}
 			});
 
+			// Because otherwise IE scrolls the page to the right
+			$elem.hide();
+
 			layout.sizePane('west', opts.treeWidth); // Fix for a ui-layout bug in chrome
 
 			$elem.resizable({
@@ -531,13 +534,6 @@
 		}
 
 		/**
-		 * Cache of repository objects queried through any of the repositories.
-		 *
-		 * @type <Object.<String, Object>>
-		 */
-		var cache = {};
-
-		/**
 		 * Repository Browser.
 		 *
 		 * Must be initialized with a configured repository manager.
@@ -547,13 +543,24 @@
 		 */
 		var Browser = Class.extend({
 
+			opened         : false,
 			grid           : null,
 			tree           : null,
 			list           : null,
 			_searchQuery   : null,
 			_orderBy       : null,
 			_currentFolder : null,
-			opened         : false,
+
+			/**
+			 * A cache of repository objects that were queried through any of
+			 * the repositories.
+			 *
+			 * This objec is shared between all instances of the repository
+			 * browser! (TODO: we should change this)
+			 *
+			 * @type <Object.<String, Object>>
+			 */
+			_objs: {},
 
 			/**
 			 * Resize the components of the repository browser:
@@ -744,7 +751,7 @@
 			 */
 			harvestRepoObject: function (obj) {
 				var uid = unique();
-				var resource = cache[uid] = $.extend(obj, {
+				var resource = this._objs[uid] = $.extend(obj, {
 					uid    : uid,
 					loaded : false
 				});
@@ -854,7 +861,7 @@
 			getObjectFromCache: function ($node) {
 				if ('object' === typeof $node) {
 					var uid = $node.find('a:first').attr('data-rep-oobj');
-					return cache[uid];
+					return this._objs[uid];
 				}
 			},
 
@@ -1102,7 +1109,6 @@
 
 				browser.list.hide();
 				browser.grid.find('.loading').show();
-
 				browser.queryRepository({
 					repositoryId     : folder.repositoryId,
 					inFolderId       : folder.id,
@@ -1133,7 +1139,7 @@
 						inFolderId   : obj.id,
 						repositoryId : obj.repositoryId
 					}, function (data) {
-						cache[obj.uid].loaded = true;
+						this._objs[obj.uid].loaded = true;
 						if ('function' === typeof callback) {
 							callback(data);
 						}
@@ -1205,7 +1211,7 @@
 				var item = null;
 				if (row.length > 0) {
 					var uid = row.attr('id');
-					item = cache[uid];
+					item = this._objs[uid];
 					this.onSelect(item);
 				}
 				return item;
