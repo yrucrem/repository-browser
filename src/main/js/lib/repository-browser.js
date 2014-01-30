@@ -19,7 +19,7 @@
 		var numOpenedBrowsers = 0;
 
 		/**
-		 * A list a repostiory browser instances.
+		 * A list a repository browser instances.
 		 *
 		 * @type {Array.<Browser>}
 		 */
@@ -502,6 +502,7 @@
 
 			// Because otherwise IE scrolls the page to the right
 			$elem.hide();
+			hideOverlay();
 
 			layout.sizePane('west', opts.treeWidth); // Fix for a ui-layout bug in chrome
 
@@ -544,9 +545,11 @@
 		var Browser = Class.extend({
 
 			opened         : false,
+
 			grid           : null,
 			tree           : null,
 			list           : null,
+
 			_searchQuery   : null,
 			_orderBy       : null,
 			_currentFolder : null,
@@ -721,6 +724,11 @@
 				browser.list    = elements.$list;
 				browser.tree    = elements.$tree;
 				browser.element = elements.$elem;
+
+				// Because of legacy support
+				browser.$_grid = browser.grid;
+				browser.$_list = browser.list;
+				browser._cachedRepositoryObjects = browser._objs;
 
 				browser._adaptPageSize();
 				browser.close();

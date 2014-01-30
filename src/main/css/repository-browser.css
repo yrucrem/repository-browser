@@ -718,3 +718,14 @@ div.repository-browser-modal-window {
  .repository-browser-search-btn {
 	 display: none;
  }
+
+td.ui-pg-button.ui-corner-all {
+	-webkit-border-radius: 0;
+	   -moz-border-radius: 0;
+	     -o-border-radius: 0;
+	        border-radius: 0;
+}
+tr.ui-widget-content.jqgrow,
+tr.ui-widget-content.jqgrow.ui-state-hover {
+	border-width: 0;
+}
