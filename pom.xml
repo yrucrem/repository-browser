@@ -188,12 +188,12 @@
 		<repository>
 			<id>archiva.lan.testing</id>
 			<name>Gentics Releases Repository</name>
-			<url>http://archiva-mirror.office:8080/archiva/repository/testing-stage</url>
+			<url>http://archiva.office/repository/testing-stage</url>
 		</repository>
 		<snapshotRepository>
-			<id>archiva.lan.snapshots</id>
+			<id>archiva.lan.public_snapshots</id>
 			<name>Gentics Snapshots Repository</name>
-			<url>http://archiva-mirror.office:8080/archiva/repository/snapshots</url>
+			<url>http://archiva.office/repository/public_snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
 </project>
