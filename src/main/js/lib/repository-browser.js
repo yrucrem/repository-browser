@@ -19,7 +19,7 @@
 		var numOpenedBrowsers = 0;
 
 		/**
-		 * A list a repository browser instances.
+		 * A list of repository browser instances.
 		 *
 		 * @type {Array.<Browser>}
 		 */
@@ -184,7 +184,7 @@
 		/**
 		 * Preloads repository browser images.
 		 *
-		 * @param {String} path
+		 * @param {string} path
 		 */
 		function preload(path) {
 			$.each([
@@ -484,8 +484,7 @@
 
 			var $tree = tree(browser, $grid.find('.ui-layout-west'), $grid.height());
 			var $list = list(browser, $grid.find('.ui-layout-center'), $grid.height());
-
-			var layout = $grid.layout({
+			var $layout = $grid.layout({
 				west__size    : opts.treeWidth - 1,
 				west__minSize : 0,
 				west__maxSize : opts.maxWidth,
@@ -504,7 +503,7 @@
 			$elem.hide();
 			hideOverlay();
 
-			layout.sizePane('west', opts.treeWidth); // Fix for a ui-layout bug in chrome
+			$layout.sizePane('west', opts.treeWidth); // Fix for a ui-layout bug in chrome
 
 			$elem.resizable({
 				autoHide  : true,
@@ -561,7 +560,7 @@
 			 * This objec is shared between all instances of the repository
 			 * browser! (TODO: we should change this)
 			 *
-			 * @type <Object.<String, Object>>
+			 * @type <Object.<string, Object>>
 			 */
 			_objs: {},
 
@@ -640,9 +639,9 @@
 			 * Retrieves the corresponding internationalization string for the
 			 * given keyword.
 			 *
-			 * @param  {String} key The key for which a full i18n string is
+			 * @param  {string} key The key for which a full i18n string is
 			 *                      retrieved
-			 * @return {String} The return value is either the i18n value matched
+			 * @return {string} The return value is either the i18n value matched
 			 *                  by the given key, or else the key
 			 */
 			_i18n: function (key) {
@@ -684,7 +683,7 @@
 			/**
 			 * Initializes the browser instance based on the given configuration.
 			 *
-			 * @param {Object} config
+			 * @param {!Object} config
 			 */
 			init: function (config) {
 				if (!config.repositoryManager) {
@@ -697,12 +696,13 @@
 				var browser = this;
 				var options = $.extend({}, DEFAULTS, config, {i18n: i18n});
 
-				if (!options.element || !options.element.length) {
+				if (!options.element || 0 === options.element.length) {
 					options.isFloating = true;
 					options.element = modal();
 				}
 
 				browser.manager       = options.repositoryManager;
+				browser._objs         = {};
 				browser._searchQuery  = null;
 				browser._orderBy      = null;
 				browser._pagingOffset = 0;
@@ -754,7 +754,7 @@
 			 * at least have the following properties at least: id, name, url, and
 			 * type. Any and all other attributes are optional.
 			 *
-			 * @param  {Object} obj
+			 * @param  {!Object} obj
 			 * @return {Object}
 			 */
 			harvestRepoObject: function (obj) {
@@ -769,11 +769,12 @@
 			/**
 			 * Returns an object that is usable with your tree component.
 			 *
-			 * @param  {Object} obj
+			 * @param  {!Object} obj
 			 * @return {Object}
 			 */
 			processRepoObject: function (obj) {
 				var icon = '', attr, state, children, browser = this;
+
 				switch (obj.baseType) {
 				case 'folder':
 					icon = 'folder';
@@ -874,95 +875,21 @@
 			},
 
 			/**
-			 * Sorts the browser item list.
+			 * Queries repositories for items matching the given parameters.
 			 *
-			 * TODO: Fix this so that sorting does toggle between desc and asc
-			 *		 when you click on a column on which we were not sorting.
-			 *
-			 * @param {Object}  colModel
-			 * @param {Element} elem
+			 * @param {Object}   params   Parameters for repository manager
+			 * @param {function} callback Receives fetch results
 			 */
-			sortList: function (colModel, elem) {
-				// reset sort properties in all column headers
-				this.grid.find('span.ui-grid-ico-sort').addClass('ui-state-disabled');
-
-				colModel.sortorder = ('asc' === colModel.sortorder) ? 'desc' : 'asc';
-
-				$(elem).find('span.s-ico').show()
-					   .find('.ui-icon-' + colModel.sortorder)
-					   .removeClass('ui-state-disabled');
-
-				this.setSortOrder(colModel.name, colModel.sortorder)
-					.fetchItems(this._currentFolder);
-			},
-
-			/**
-			 * Adds new sort fields into the _orderBy array.  If a field already
-			 * exists, it will be spliced from where it is and unshifted to the end
-			 * of the array.
-			 *
-			 * @param {String} by
-			 * @param {String} order
-			 */
-			setSortOrder: function (by, order) {
-				var orderBy = this._orderBy || [];
-				var field;
-				var orderItem;
-				var found = false;
-				var i, j;
-				var sortItem = {};
-				sortItem[by] = order || 'asc';
-				for (i = 0, j = orderBy.length; i < j; i++) {
-					orderItem = orderBy[i];
-					for (field in orderItem) {
-						if (orderItem.hasOwnProperty(field) && field === by) {
-							orderBy.splice(i, 1);
-							orderBy.unshift(sortItem);
-							found = true;
-							break;
-						}
-					}
-					if (found) {
-						break;
-					}
-				}
-				if (found) {
-					orderBy.unshift(sortItem);
-				}
-				this._orderBy = orderBy;
-				return this;
-			},
-
-			/**
-			 * Pages the list according to the given direction.
-			 *
-			 * @param {String} dir
-			 */
-			doPaging: function (dir) {
-				switch (dir) {
-				case 'first':
-					this._pagingOffset = 0;
-					break;
-				case 'end':
-					if ((this._pagingCount % this.pageSize) === 0) {
-						// item count is exactly divisible by page size
-						this._pagingOffset = this._pagingCount - this.pageSize;
-					} else {
-						this._pagingOffset = this._pagingCount - (this._pagingCount % this.pageSize);
-					}
-					break;
-				case 'next':
-					this._pagingOffset += this.pageSize;
-					break;
-				case 'prev':
-					this._pagingOffset -= this.pageSize;
-					// avoid "out of bounds" situation
-					if (this._pagingOffset < 0) {
-						this._pagingOffset = 0;
-					}
-					break;
-				}
-				this.fetchItems(this._currentFolder);
+			queryRepository: function (params, callback) {
+				var browser = this;
+				browser.manager.query(params, function (response) {
+					var items = (response.results > 0) ? response.items : [];
+					browser.processRepoResponse(items, {
+						timeout      : response.timeout,
+						numItems     : response.numItems,
+						hasMoreItems : response.hasMoreItems
+					}, callback);
+				});
 			},
 
 			/**
@@ -1038,22 +965,11 @@
 
 				this.grid.find('.ui-paging-info')
 					.html(this._i18n('Viewing') + ' ' + from + ' - ' + to + ' '
-						+ this._i18n('of') + ' ' + count);
+							+ this._i18n('of') + ' ' + count);
 
 				// when the repository manager reports a timeout, we handle it
 				if (metainfo && metainfo.timeout) {
 					this.handleTimeout();
-				}
-			},
-
-			/**
-			 * Gets the selected folder.
-			 *
-			 * @return {object} selected Folder or undefined
-			 */
-			getSelectedFolder: function () {
-				if ('function' === typeof this.manager.getSelectedFolder) {
-					return this.manager.getSelectedFolder();
 				}
 			},
 
@@ -1111,12 +1027,14 @@
 
 				browser.list.setCaption(isSearching
 					? browser._i18n('Searching for')
-						+ ' ' + browser._searchQuery + ' '
-						+ browser._i18n('in') + ' ' + folder.name
+							+ ' ' + browser._searchQuery
+							+ ' ' + browser._i18n('in')
+							+ ' ' + folder.name
 					: browser._i18n('Browsing') + ': ' + folder.name);
 
 				browser.list.hide();
 				browser.grid.find('.loading').show();
+
 				browser.queryRepository({
 					repositoryId     : folder.repositoryId,
 					inFolderId       : folder.id,
@@ -1147,7 +1065,7 @@
 						inFolderId   : obj.id,
 						repositoryId : obj.repositoryId
 					}, function (data) {
-						this._objs[obj.uid].loaded = true;
+						browser._objs[obj.uid].loaded = true;
 						if ('function' === typeof callback) {
 							callback(data);
 						}
@@ -1169,28 +1087,42 @@
 			},
 
 			/**
-			 * Queries repositories for items matching the given parameters.
+			 * Pages the list according to the given direction.
 			 *
-			 * @param {Object}   params   Parameters for repository manager
-			 * @param {function} callback Receives fetch results
+			 * @param {string} dir
 			 */
-			queryRepository: function (params, callback) {
-				var browser = this;
-				browser.manager.query(params, function (response) {
-					var items = (response.results > 0) ? response.items : [];
-					browser.processRepoResponse(items, {
-						timeout      : response.timeout,
-						numItems     : response.numItems,
-						hasMoreItems : response.hasMoreItems
-					}, callback);
-				});
+			doPaging: function (dir) {
+				switch (dir) {
+				case 'first':
+					this._pagingOffset = 0;
+					break;
+				case 'end':
+					if ((this._pagingCount % this.pageSize) === 0) {
+						// item count is exactly divisible by page size
+						this._pagingOffset = this._pagingCount - this.pageSize;
+					} else {
+						this._pagingOffset = this._pagingCount - (this._pagingCount % this.pageSize);
+					}
+					break;
+				case 'next':
+					this._pagingOffset += this.pageSize;
+					break;
+				case 'prev':
+					this._pagingOffset -= this.pageSize;
+					// avoid "out of bounds" situation
+					if (this._pagingOffset < 0) {
+						this._pagingOffset = 0;
+					}
+					break;
+				}
+				this.fetchItems(this._currentFolder);
 			},
 
 			/**
 			 * Builds a row that an be rendered in the grid layout from the given
 			 * repository item.
 			 *
-			 * @param   {Object} item Repository resource to render
+			 * @param   {Object} resource Repository resource to render
 			 * @returns {Object} Object representing the rendered row such that
 			 *                   it can be used to populate the grid layout
 			 */
@@ -1206,6 +1138,66 @@
 					}
 				});
 				return row;
+			},
+
+			/**
+			 * Sorts the browser item list.
+			 *
+			 * TODO: Fix this so that sorting does toggle between desc and asc
+			 *		 when you click on a column on which we were not sorting.
+			 *
+			 * @param {Object}  colModel
+			 * @param {Element} elem
+			 */
+			sortList: function (colModel, elem) {
+				// reset sort properties in all column headers
+				this.grid.find('span.ui-grid-ico-sort').addClass('ui-state-disabled');
+
+				colModel.sortorder = ('asc' === colModel.sortorder) ? 'desc' : 'asc';
+
+				$(elem).find('span.s-ico').show()
+					   .find('.ui-icon-' + colModel.sortorder)
+					   .removeClass('ui-state-disabled');
+
+				this.setSortOrder(colModel.name, colModel.sortorder)
+					.fetchItems(this._currentFolder);
+			},
+
+			/**
+			 * Adds new sort fields into the _orderBy array.  If a field already
+			 * exists, it will be spliced from where it is and unshifted to the end
+			 * of the array.
+			 *
+			 * @param {string} by
+			 * @param {string} order
+			 */
+			setSortOrder: function (by, order) {
+				var orderBy = this._orderBy || [];
+				var field;
+				var orderItem;
+				var found = false;
+				var i, j;
+				var sortItem = {};
+				sortItem[by] = order || 'asc';
+				for (i = 0, j = orderBy.length; i < j; i++) {
+					orderItem = orderBy[i];
+					for (field in orderItem) {
+						if (orderItem.hasOwnProperty(field) && field === by) {
+							orderBy.splice(i, 1);
+							orderBy.unshift(sortItem);
+							found = true;
+							break;
+						}
+					}
+					if (found) {
+						break;
+					}
+				}
+				if (found) {
+					orderBy.unshift(sortItem);
+				}
+				this._orderBy = orderBy;
+				return this;
 			},
 
 			/**
@@ -1271,7 +1263,7 @@
 			/**
 			 * Updates the object type filter option.
 			 *
-			 * @param {String} otf
+			 * @param {string} otf
 			 */
 			setObjectTypeFilter: function (otf) {
 				this.objectTypeFilter = ('string' === typeof otf) ? [otf] : otf;
@@ -1364,7 +1356,7 @@
 			},
 
 			/**
-			 * This function gets called when a folder in the tree is opened
+			 * This function gets called when a folder in the tree is opened.
 			 *
 			 * @param {Object} obj Folder data object
 			 */
@@ -1396,6 +1388,17 @@
 				this.manager.folderSelected(obj);
 			},
 
+			/**
+			 * Gets the selected folder.
+			 *
+			 * @return {object} selected Folder or undefined
+			 */
+			getSelectedFolder: function () {
+				if ('function' === typeof this.manager.getSelectedFolder) {
+					return this.manager.getSelectedFolder();
+				}
+			},
+
 			destroy: function () {},
 
 			/**
@@ -1417,17 +1420,6 @@
 	}
 
 	if ('function' === typeof define) {
-		define('RepositoryBrowser', [
-			'jquery',
-			'Class',
-			'PubSub',
-			'repository-browser-i18n-' + (
-				(window && window.__DEPS__ && window.__DEPS__.lang) || 'en'
-			),
-			'jstree',
-			'jqgrid',
-			'jquery-layout'
-		], initialize);
 		define('repository-browser-i18n-de', [], function () {
 			return {
 				'Browsing'                       : 'Durchsuchen',
@@ -1458,6 +1450,17 @@
 				'button.switch-metaview.tooltip' : 'Switch between meta and normal view'
 			};
 		});
+		define('RepositoryBrowser', [
+			'jquery',
+			'Class',
+			'PubSub',
+			'repository-browser-i18n-' + (
+				(window && window.__DEPS__ && window.__DEPS__.lang) || 'en'
+			),
+			'jstree',
+			'jqgrid',
+			'jquery-layout'
+		], initialize);
 	} else {
 		window.Browser = initialize(
 			window.jQuery,
