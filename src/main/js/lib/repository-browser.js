@@ -26,7 +26,8 @@
 		var instances = [];
 
 		/**
-		 * The lowest CSS z-index on for the repository browser overlay and modals.
+		 * The lowest CSS z-index on for the repository browser overlay and
+		 * modals.
 		 *
 		 * @type {number}
 		 */
@@ -217,8 +218,8 @@
 		 */
 		function tree(browser, $container, height) {
 			var $header = $('<div class="repository-browser-tree-header repository-browser-grab-handle">'
-						+ browser._i18n('Repository Browser')
-						+ '</div>');
+			            + browser._i18n('Repository Browser')
+			            + '</div>');
 
 			var $tree = $('<div class="repository-browser-tree"></div>');
 
@@ -228,9 +229,9 @@
 
 			$tree.bind('loaded.jstree', function (event, data) {
 				$(this).find('>ul>li:first').css('padding-top', 5);
-				// Because jstree `open_node' will add substree items to every item
-				// matched by the selector, we need to ensure that `open_node' is
-				// invoked for one item at a time.
+				// Because jstree `open_node' will add substree items to every
+				// item matched by the selector, we need to ensure that
+				// `open_node' is invoked for one item at a time.
 				$(this).find('li[rel="repository"]:first').each(function (i, li) {
 					$tree.jstree('open_node', li);
 				});
@@ -291,9 +292,9 @@
 		 */
 		function grid(browser, $container) {
 			var $grid = $('<div class="repository-browser-grid repository-browser-shadow repository-browser-top">'
-					  + '<div class="ui-layout-west"></div>'
-					  + '<div class="ui-layout-center"></div>'
-					  + '</div>');
+			          + '<div class="ui-layout-west"></div>'
+			          + '<div class="ui-layout-center"></div>'
+			          + '</div>');
 			$container.append($grid);
 			return $grid;
 		}
@@ -309,15 +310,15 @@
 			var $title  = $container.find('.ui-jqgrid-titlebar');
 
 			var html = '<div class="repository-browser-btns">'
-					 +		'<input type="text" class="repository-browser-search-field" />'
-					 +		'<span class="repository-browser-btn repository-browser-search-btn">'
-					 +			'<span class="repository-browser-search-icon"></span>'
-					 +		'</span>'
-					 +		'<span class="repository-browser-btn repository-browser-close-btn">'
-					 +			browser._i18n('Close')
-					 +		'</span>'
-					 +		'<div class="repository-browser-clear"></div>'
-					 + '</div>';
+			         +		'<input type="text" class="repository-browser-search-field" />'
+			         +		'<span class="repository-browser-btn repository-browser-search-btn">'
+			         +			'<span class="repository-browser-search-icon"></span>'
+			         +		'</span>'
+			         +		'<span class="repository-browser-btn repository-browser-close-btn">'
+			         +			browser._i18n('Close')
+			         +		'</span>'
+			         +		'<div class="repository-browser-clear"></div>'
+			         + '</div>';
 
 			$title.addClass('repository-browser-grab-handle').append(html);
 
@@ -333,7 +334,7 @@
 			});
 
 			$search.val(browser._i18n('Input search text...'))
-				   .addClass('repository-browser-search-field-empty');
+			       .addClass('repository-browser-search-field-empty');
 
 			$search.focus(function () {
 				if ($search.val() === browser._i18n('Input search text...')) {
@@ -344,7 +345,7 @@
 			$search.blur(function () {
 				if ('' === $search.val()) {
 					$search.val(browser._i18n('Input search text...'))
-						   .addClass('repository-browser-search-field-empty');
+					       .addClass('repository-browser-search-field-empty');
 				}
 			});
 
@@ -374,7 +375,8 @@
 		function list(browser, $container, height) {
 			var $list = $('<table id="jqgrid_needs_something_anything_here" class="repository-browser-list"></table>');
 
-			// Because we need a hidden utility column to help us with auto sorting
+			// Because we need a hidden utility column to help us with auto
+			// sorting
 			var names = [''];
 			var model = [{
 				name	       : 'id',
@@ -398,11 +400,11 @@
 			/**
 			 * jqGrid requires that we use an id, despite what the documentation says
 			 * (http://www.trirand.com/jqgridwiki/doku.php?id=wiki:pager&s[]=pager):
-			 * We need a unique id, however, in order to distinguish pager elements for
-			 * each browser instance.
+			 * We need a unique id, however, in order to distinguish pager
+			 * elements for each browser instance.
 			 */
 			var pagerId = 'repository-browser-list-page-' + unique();
-			$container.append($list, '<div id="' + pagerId + '" class="repository-browser-grab-handle">');
+			$container.append($list, '<div id="' + pagerId + '" class="repository-browser-grab-handle"></div>');
 
 			$list.jqGrid({
 				datatype      : 'local',
@@ -596,8 +598,8 @@
 			 */
 			_resizeVertical: function (overflow) {
 				var height = (overflow > 0)
-						   ? Math.max(this.minHeight, this.maxHeight - overflow)
-						   : this.maxHeight;
+				           ? Math.max(this.minHeight, this.maxHeight - overflow)
+				           : this.maxHeight;
 				this.element.height(height);
 				this.grid.height(height);
 			},
@@ -616,8 +618,8 @@
 			},
 
 			/**
-			 * Automatically resizes the browser modal, constraining its dimensions
-			 * between minWidth and maxWidth.
+			 * Automatically resizes the browser modal, constraining its
+			 * dimensions between minWidth and maxWidth.
 			 */
 			_onWindowResized: function () {
 				this._resizeHorizontal(this.maxWidth - $window.width() + this.padding);
@@ -631,7 +633,7 @@
 			_clearSearch: function () {
 				var $search = this.grid.find('.repository-browser-search-field');
 				$search.val(this._i18n('Input search text...'))
-					   .addClass('repository-browser-search-field-empty');
+				       .addClass('repository-browser-search-field-empty');
 				this._searchQuery = null;
 			},
 
@@ -748,11 +750,11 @@
 			},
 
 			/**
-			 * Convert a repository object into an object that can be used with our
-			 * tree component. Also add a reference to this object in our objs
-			 * hash.  According to the Repository specification, each object will
-			 * at least have the following properties at least: id, name, url, and
-			 * type. Any and all other attributes are optional.
+			 * Convert a repository object into an object that can be used with
+			 * our tree component. Also add a reference to this object in our
+			 * objs hash. According to the Repository specification, each object
+			 * will at least have the following properties at least: id, name,
+			 * url, and type. Any and all other attributes are optional.
 			 *
 			 * @param  {!Object} obj
 			 * @return {Object}
@@ -960,11 +962,11 @@
 				}
 
 				var count = ('number' === typeof this._pagingCount)
-						  ? this._pagingCount
-						  : this._i18n('numerous');
+				          ? this._pagingCount
+				          : this._i18n('numerous');
 
 				this.grid.find('.ui-paging-info')
-					.html(this._i18n('Viewing') + ' ' + from + ' - ' + to + ' '
+				    .html(this._i18n('Viewing') + ' ' + from + ' - ' + to + ' '
 							+ this._i18n('of') + ' ' + count);
 
 				// when the repository manager reports a timeout, we handle it
@@ -1119,8 +1121,8 @@
 			},
 
 			/**
-			 * Builds a row that an be rendered in the grid layout from the given
-			 * repository item.
+			 * Builds a row that an be rendered in the grid layout from the
+			 * given repository item.
 			 *
 			 * @param   {Object} resource Repository resource to render
 			 * @returns {Object} Object representing the rendered row such that
@@ -1156,17 +1158,17 @@
 				colModel.sortorder = ('asc' === colModel.sortorder) ? 'desc' : 'asc';
 
 				$(elem).find('span.s-ico').show()
-					   .find('.ui-icon-' + colModel.sortorder)
-					   .removeClass('ui-state-disabled');
+				       .find('.ui-icon-' + colModel.sortorder)
+				       .removeClass('ui-state-disabled');
 
 				this.setSortOrder(colModel.name, colModel.sortorder)
-					.fetchItems(this._currentFolder);
+				    .fetchItems(this._currentFolder);
 			},
 
 			/**
-			 * Adds new sort fields into the _orderBy array.  If a field already
-			 * exists, it will be spliced from where it is and unshifted to the end
-			 * of the array.
+			 * Adds new sort fields into the _orderBy array. If a field already
+			 * exists, it will be spliced from where it is and unshifted to the
+			 * end of the array.
 			 *
 			 * @param {string} by
 			 * @param {string} order
@@ -1346,8 +1348,8 @@
 			},
 
 			/**
-			 * Refreshes the browser's list by refetching the items of the current
-			 * folder.
+			 * Refreshes the browser's list by refetching the items of the
+			 * current folder.
 			 */
 			refresh: function () {
 				if (this._currentFolder) {
@@ -1468,5 +1470,4 @@
 			{pub: function () {}} // PubSub noop interface
 		);
 	}
-
 }());
