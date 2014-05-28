@@ -373,7 +373,7 @@
 		 * @return {jQuery.<Element>}
 		 */
 		function list(browser, $container, height) {
-			var $list = $('<table id="jqgrid_needs_something_anything_here" class="repository-browser-list"></table>');
+			var $list = $('<table id="list-' + unique() + '" class="repository-browser-list"></table>');
 
 			// Because we need a hidden utility column to help us with auto
 			// sorting
